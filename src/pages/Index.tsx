@@ -65,9 +65,9 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        <Tabs defaultValue="actual" className="space-y-6">
-          <TabsList className="bg-secondary/50">
-            <TabsTrigger value="actual" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+        <Tabs defaultValue="actual" className="space-y-6 px-[10px]">
+          <TabsList className="bg-secondary/50 text-left font-sans my-0 py-[25px] px-0">
+            <TabsTrigger value="actual" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
               <ListChecks className="h-4 w-4" />
               Situation actuelle
             </TabsTrigger>
