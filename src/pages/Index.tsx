@@ -66,20 +66,20 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-8 space-y-8">
         <Tabs defaultValue="actual" className="space-y-6 px-[10px]">
-          <TabsList className="bg-secondary/50 text-left font-sans my-0 py-[25px] px-0">
-            <TabsTrigger value="actual" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
+          <TabsList className="bg-secondary/50 p-1 rounded-lg">
+            <TabsTrigger value="actual" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <ListChecks className="h-4 w-4" />
               Situation actuelle
             </TabsTrigger>
-            <TabsTrigger value="categories" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
+            <TabsTrigger value="categories" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <PieChart className="h-4 w-4" />
               Par catégorie
             </TabsTrigger>
-            <TabsTrigger value="timeline" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
+            <TabsTrigger value="timeline" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BarChart3 className="h-4 w-4" />
               Timeline
             </TabsTrigger>
-            <TabsTrigger value="projections" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
+            <TabsTrigger value="projections" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <GitCompare className="h-4 w-4" />
               Scénarios
             </TabsTrigger>
