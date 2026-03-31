@@ -75,7 +75,7 @@ const Index = () => {
               <PieChart className="h-4 w-4" />
               Par catégorie
             </TabsTrigger>
-            <TabsTrigger value="timeline" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="timeline" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
               <BarChart3 className="h-4 w-4" />
               Timeline
             </TabsTrigger>
