@@ -24,7 +24,8 @@ const MONTHS_FR = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juill
 const MONTHS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
-function isActiveInMonth(item: { startDate: string; endDate?: string }, year: number, month: number): boolean {
+function isActiveInMonth(item: { startDate?: string; endDate?: string }, year: number, month: number): boolean {
+  if (!item.startDate) return true; // no start date = always active
   const start = new Date(item.startDate);
   const startMonth = start.getFullYear() * 12 + start.getMonth();
   const targetMonth = year * 12 + month;
@@ -37,7 +38,8 @@ function isActiveInMonth(item: { startDate: string; endDate?: string }, year: nu
   return true;
 }
 
-function isActiveOnDate(item: { startDate: string; endDate?: string }, date: Date): boolean {
+function isActiveOnDate(item: { startDate?: string; endDate?: string }, date: Date): boolean {
+  if (!item.startDate) return true; // no start date = always active
   const start = new Date(item.startDate);
   start.setHours(0, 0, 0, 0);
   if (date < start) return false;

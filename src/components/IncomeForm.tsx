@@ -61,8 +61,8 @@ export function IncomeForm({ onSubmit, isProjection = false }: IncomeFormProps) 
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date de début</Label>
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
+              <Label>Date de début <span className="text-muted-foreground text-xs">(optionnel)</span></Label>
+              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Date de fin</Label>

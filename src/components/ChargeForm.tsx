@@ -55,7 +55,7 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
     }
     setOpen(false);
     if (!editCharge) {
-      setName(''); setAmount(''); setTotalAmount(''); setPaidAmount(''); setNotes('');
+      setName(''); setAmount(''); setTotalAmount(''); setPaidAmount(''); setInterestRate(''); setNotes('');
     }
   };
 
