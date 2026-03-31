@@ -1,18 +1,22 @@
 import { Income } from '@/types/finance';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { IncomeForm } from './IncomeForm';
 
 interface IncomeListProps {
   incomes: Income[];
   onDelete: (id: string) => void;
+  onUpdate?: (id: string, updates: Partial<Income>) => void;
+  onAdd?: (income: Omit<Income, 'id'>) => void;
+  isProjection?: boolean;
 }
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
 }
 
-export function IncomeList({ incomes, onDelete }: IncomeListProps) {
+export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = false }: IncomeListProps) {
   const totalMonthly = incomes.reduce((sum, i) => sum + i.amount, 0);
 
   return (
@@ -42,9 +46,20 @@ export function IncomeList({ incomes, onDelete }: IncomeListProps) {
             </div>
             <div className="flex items-center gap-3">
               <span className="font-bold text-lg text-primary">+{formatCurrency(income.amount)}</span>
-              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 text-destructive" onClick={() => onDelete(income.id)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {onUpdate && onAdd && (
+                  <IncomeForm
+                    editIncome={income}
+                    onSubmit={onAdd}
+                    onUpdate={onUpdate}
+                    isProjection={isProjection}
+                    trigger={<Button variant="ghost" size="icon" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>}
+                  />
+                )}
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(income.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         ))}
