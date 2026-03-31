@@ -114,8 +114,8 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date de début</Label>
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
+              <Label>Date de début {isCredit && <span className="text-destructive">*</span>}</Label>
+              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required={isCredit} />
             </div>
             <div className="space-y-2">
               <Label>Date de fin</Label>
