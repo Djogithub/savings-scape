@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { FinanceData, Charge, Income } from '@/types/finance';
 
 const STORAGE_KEY = 'finance-app-data';
+const BACKUP_KEY = 'finance-app-backup';
 const CURRENT_VERSION = 1;
 
 function loadData(): FinanceData {
@@ -9,6 +10,14 @@ function loadData(): FinanceData {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      if (parsed && parsed.version === CURRENT_VERSION) {
+        return parsed;
+      }
+    }
+    // Try backup
+    const backup = localStorage.getItem(BACKUP_KEY);
+    if (backup) {
+      const parsed = JSON.parse(backup);
       if (parsed && parsed.version === CURRENT_VERSION) {
         return parsed;
       }
@@ -21,10 +30,44 @@ function loadData(): FinanceData {
 
 function saveData(data: FinanceData) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const json = JSON.stringify(data);
+    // Save to both main and backup keys for redundancy
+    localStorage.setItem(STORAGE_KEY, json);
+    localStorage.setItem(BACKUP_KEY, json);
   } catch (e) {
     console.error('Failed to save finance data:', e);
   }
+}
+
+export function exportData(data: FinanceData) {
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `monbudget-export-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function importData(file: File): Promise<FinanceData> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result as string);
+        if (parsed && Array.isArray(parsed.charges) && Array.isArray(parsed.incomes)) {
+          resolve({ ...parsed, version: CURRENT_VERSION });
+        } else {
+          reject(new Error('Format de fichier invalide'));
+        }
+      } catch {
+        reject(new Error('Fichier JSON invalide'));
+      }
+    };
+    reader.onerror = () => reject(new Error('Erreur de lecture'));
+    reader.readAsText(file);
+  });
 }
 
 export function useFinanceData() {
@@ -76,6 +119,10 @@ export function useFinanceData() {
     }));
   }, []);
 
+  const loadFromImport = useCallback((imported: FinanceData) => {
+    setData(imported);
+  }, []);
+
   const actualCharges = data.charges.filter(c => !c.isProjection);
   const projectedCharges = data.charges.filter(c => c.isProjection);
   const actualIncomes = data.incomes.filter(i => !i.isProjection);
@@ -95,5 +142,6 @@ export function useFinanceData() {
     addIncome,
     updateIncome,
     deleteIncome,
+    loadFromImport,
   };
 }
