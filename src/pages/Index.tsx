@@ -24,6 +24,7 @@ const Index = () => {
   } = useFinanceData();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   const handleExport = () => {
     exportData(data);
