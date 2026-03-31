@@ -63,7 +63,7 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button className="gap-2">
+          <Button className="gap-2 rounded-full bg-neutral-100 text-primary-foreground hover:bg-neutral-200">
             <Plus className="h-4 w-4" />
             {isProjection ? 'Ajouter projection' : 'Ajouter une charge'}
           </Button>
