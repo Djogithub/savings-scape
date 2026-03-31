@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Income } from '@/types/finance';
 import { Plus } from 'lucide-react';
+import { DatePicker } from './DatePicker';
 
 interface IncomeFormProps {
   onSubmit: (income: Omit<Income, 'id'>) => void;

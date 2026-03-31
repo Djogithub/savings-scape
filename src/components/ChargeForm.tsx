@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Charge, ChargeType, ChargeCategory, CATEGORY_LABELS, CHARGE_TYPE_LABELS } from '@/types/finance';
 import { Plus } from 'lucide-react';
+import { DatePicker } from './DatePicker';
 
 interface ChargeFormProps {
   onSubmit: (charge: Omit<Charge, 'id'>) => void;
