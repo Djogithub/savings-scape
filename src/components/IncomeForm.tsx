@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Income } from '@/types/finance';
 import { Plus } from 'lucide-react';
+import { DatePicker } from './DatePicker';
 
 interface IncomeFormProps {
   onSubmit: (income: Omit<Income, 'id'>) => void;
@@ -62,11 +63,11 @@ export function IncomeForm({ onSubmit, isProjection = false }: IncomeFormProps) 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Date de début <span className="text-muted-foreground text-xs">(optionnel)</span></Label>
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+              <DatePicker value={startDate} onChange={setStartDate} />
             </div>
             <div className="space-y-2">
               <Label>Date de fin</Label>
-              <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+              <DatePicker value={endDate} onChange={setEndDate} />
             </div>
           </div>
           <Button type="submit" className="w-full">Ajouter</Button>

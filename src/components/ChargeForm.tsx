@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Charge, ChargeType, ChargeCategory, CATEGORY_LABELS, CHARGE_TYPE_LABELS } from '@/types/finance';
 import { Plus } from 'lucide-react';
+import { DatePicker } from './DatePicker';
 
 interface ChargeFormProps {
   onSubmit: (charge: Omit<Charge, 'id'>) => void;
@@ -115,11 +116,11 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Date de début {isCredit && <span className="text-destructive">*</span>}</Label>
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required={isCredit} />
+              <DatePicker value={startDate} onChange={setStartDate} required={isCredit} />
             </div>
             <div className="space-y-2">
               <Label>Date de fin</Label>
-              <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+              <DatePicker value={endDate} onChange={setEndDate} />
             </div>
           </div>
           {isCredit && (
