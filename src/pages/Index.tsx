@@ -47,7 +47,7 @@ const Index = () => {
       <header className="border-b border-border/50 backdrop-blur-xl sticky top-0 z-50 bg-background/80">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold gradient-text">MonBudget</h1>
+            <h1 className="font-bold gradient-text text-3xl">MonBudget</h1>
             <p className="text-xs text-muted-foreground">Gestion de comptes personnels</p>
           </div>
           <div className="flex gap-2">
