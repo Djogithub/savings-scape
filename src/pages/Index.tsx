@@ -49,22 +49,33 @@ const Index = () => {
 
           {/* Actual Tab */}
           <TabsContent value="actual" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Colonne Charges */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">Charges</h2>
+                  <ChargeForm onSubmit={addCharge} />
+                </div>
+                <ChargeList
+                  charges={actualCharges}
+                  onDelete={deleteCharge}
+                  onUpdate={updateCharge}
+                  onAdd={addCharge}
+                />
+              </div>
+
+              {/* Colonne Revenus */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">Revenus</h2>
+                  <IncomeForm onSubmit={addIncome} />
+                </div>
+                <IncomeList incomes={actualIncomes} onDelete={deleteIncome} />
+              </div>
+            </div>
+
+            {/* Solde disponible below both columns */}
             <SummaryCards charges={actualCharges} incomes={actualIncomes} />
-
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Revenus</h2>
-              <IncomeList incomes={actualIncomes} onDelete={deleteIncome} />
-            </div>
-
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Charges</h2>
-              <ChargeList
-                charges={actualCharges}
-                onDelete={deleteCharge}
-                onUpdate={updateCharge}
-                onAdd={addCharge}
-              />
-            </div>
           </TabsContent>
 
           {/* Timeline Tab */}
