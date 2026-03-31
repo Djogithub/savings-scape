@@ -47,7 +47,7 @@ const Index = () => {
       <header className="border-b border-border/50 backdrop-blur-xl sticky top-0 z-50 bg-background/80">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold gradient-text">MonBudget</h1>
+            <h1 className="font-bold gradient-text text-3xl">MonBudget</h1>
             <p className="text-xs text-muted-foreground">Gestion de comptes personnels</p>
           </div>
           <div className="flex gap-2">
@@ -65,21 +65,21 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        <Tabs defaultValue="actual" className="space-y-6">
-          <TabsList className="bg-secondary/50">
-            <TabsTrigger value="actual" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+        <Tabs defaultValue="actual" className="space-y-6 px-[10px]">
+          <TabsList className="bg-secondary/50 text-left font-sans my-0 py-[25px] px-0">
+            <TabsTrigger value="actual" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
               <ListChecks className="h-4 w-4" />
               Situation actuelle
             </TabsTrigger>
-            <TabsTrigger value="categories" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="categories" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
               <PieChart className="h-4 w-4" />
               Par catégorie
             </TabsTrigger>
-            <TabsTrigger value="timeline" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="timeline" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
               <BarChart3 className="h-4 w-4" />
               Timeline
             </TabsTrigger>
-            <TabsTrigger value="projections" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="projections" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
               <GitCompare className="h-4 w-4" />
               Scénarios
             </TabsTrigger>
