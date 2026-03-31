@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useFinanceData, exportData, importData } from '@/hooks/useFinanceData';
+import { useScenarios } from '@/hooks/useScenarios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SummaryCards } from '@/components/SummaryCards';
 import { ChargeList } from '@/components/ChargeList';
@@ -8,8 +9,10 @@ import { IncomeForm } from '@/components/IncomeForm';
 import { TimelineChart } from '@/components/TimelineChart';
 import { ChargeForm } from '@/components/ChargeForm';
 import { CategoryBreakdown } from '@/components/CategoryBreakdown';
+import { ScenarioManager } from '@/components/ScenarioManager';
+import { ScenarioComparison } from '@/components/ScenarioComparison';
 import { Button } from '@/components/ui/button';
-import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon } from 'lucide-react';
+import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Scale } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -19,9 +22,16 @@ const Index = () => {
     actualCharges, projectedCharges,
     actualIncomes, projectedIncomes,
     addCharge, updateCharge, deleteCharge,
-    addIncome, deleteIncome,
+    addIncome, updateIncome, deleteIncome,
     loadFromImport,
   } = useFinanceData();
+
+  const {
+    scenarios,
+    createScenario, deleteScenario, renameScenario, duplicateScenario,
+    addChargeToScenario, updateChargeInScenario, deleteChargeFromScenario,
+    addIncomeToScenario, updateIncomeInScenario, deleteIncomeFromScenario,
+  } = useScenarios();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
@@ -88,6 +98,10 @@ const Index = () => {
               <GitCompare className="h-4 w-4" />
               Scénarios
             </TabsTrigger>
+            <TabsTrigger value="comparison" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Scale className="h-4 w-4" />
+              Comparaison
+            </TabsTrigger>
           </TabsList>
 
           {/* Actual Tab */}
@@ -110,7 +124,12 @@ const Index = () => {
                   <h2 className="text-xl font-semibold">Revenus</h2>
                   <IncomeForm onSubmit={addIncome} />
                 </div>
-                <IncomeList incomes={actualIncomes} onDelete={deleteIncome} />
+                <IncomeList
+                  incomes={actualIncomes}
+                  onDelete={deleteIncome}
+                  onUpdate={updateIncome}
+                  onAdd={addIncome}
+                />
               </div>
             </div>
             <SummaryCards charges={actualCharges} incomes={actualIncomes} />
@@ -127,42 +146,37 @@ const Index = () => {
             <TimelineChart charges={actualCharges} incomes={actualIncomes} />
           </TabsContent>
 
-          {/* Projections Tab */}
+          {/* Scenarios Tab */}
           <TabsContent value="projections" className="space-y-6">
             <div className="glass-card p-4 border-warning/30">
               <p className="text-sm text-warning">
-                ⚡ Mode projection — Ajoutez des charges et revenus hypothétiques pour comparer avec votre situation actuelle.
+                ⚡ Créez des scénarios pour simuler différentes situations financières. Chaque scénario peut partir de vos données actuelles ou être créé de zéro.
               </p>
             </div>
-            <TimelineChart
-              charges={actualCharges}
-              incomes={actualIncomes}
-              projectedCharges={projectedCharges}
-              projectedIncomes={projectedIncomes}
-              showProjections
+            <ScenarioManager
+              scenarios={scenarios}
+              actualCharges={actualCharges}
+              actualIncomes={actualIncomes}
+              onCreateScenario={createScenario}
+              onDeleteScenario={deleteScenario}
+              onRenameScenario={renameScenario}
+              onDuplicateScenario={duplicateScenario}
+              onAddCharge={addChargeToScenario}
+              onUpdateCharge={updateChargeInScenario}
+              onDeleteCharge={deleteChargeFromScenario}
+              onAddIncome={addIncomeToScenario}
+              onUpdateIncome={updateIncomeInScenario}
+              onDeleteIncome={deleteIncomeFromScenario}
             />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Charges projetées</h2>
-                  <ChargeForm onSubmit={(c) => addCharge({ ...c, isProjection: true })} isProjection />
-                </div>
-                <ChargeList
-                  charges={projectedCharges}
-                  onDelete={deleteCharge}
-                  onUpdate={updateCharge}
-                  isProjection
-                  onAdd={(c) => addCharge({ ...c, isProjection: true })}
-                />
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Revenus projetés</h2>
-                  <IncomeForm onSubmit={(i) => addIncome({ ...i, isProjection: true })} isProjection />
-                </div>
-                <IncomeList incomes={projectedIncomes} onDelete={deleteIncome} />
-              </div>
-            </div>
+          </TabsContent>
+
+          {/* Comparison Tab */}
+          <TabsContent value="comparison" className="space-y-6">
+            <ScenarioComparison
+              scenarios={scenarios}
+              actualCharges={actualCharges}
+              actualIncomes={actualIncomes}
+            />
           </TabsContent>
         </Tabs>
       </main>

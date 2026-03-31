@@ -11,41 +11,54 @@ import { DatePicker } from './DatePicker';
 interface IncomeFormProps {
   onSubmit: (income: Omit<Income, 'id'>) => void;
   isProjection?: boolean;
+  editIncome?: Income;
+  onUpdate?: (id: string, updates: Partial<Income>) => void;
+  trigger?: React.ReactNode;
 }
 
-export function IncomeForm({ onSubmit, isProjection = false }: IncomeFormProps) {
+export function IncomeForm({ onSubmit, isProjection = false, editIncome, onUpdate, trigger }: IncomeFormProps) {
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
-  const [isRecurring, setIsRecurring] = useState(true);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [name, setName] = useState(editIncome?.name ?? '');
+  const [amount, setAmount] = useState(editIncome?.amount?.toString() ?? '');
+  const [isRecurring, setIsRecurring] = useState(editIncome?.isRecurring ?? true);
+  const [startDate, setStartDate] = useState(editIncome?.startDate ?? '');
+  const [endDate, setEndDate] = useState(editIncome?.endDate ?? '');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    const incomeData: Omit<Income, 'id'> = {
       name,
       amount: parseFloat(amount),
       isRecurring,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
       isProjection,
-    });
+    };
+
+    if (editIncome && onUpdate) {
+      onUpdate(editIncome.id, incomeData);
+    } else {
+      onSubmit(incomeData);
+    }
     setOpen(false);
-    setName(''); setAmount('');
+    if (!editIncome) {
+      setName(''); setAmount('');
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <Plus className="h-4 w-4" />
-          {isProjection ? 'Ajouter revenu projeté' : 'Ajouter un revenu'}
-        </Button>
+        {trigger ?? (
+          <Button variant="outline" className="gap-2">
+            <Plus className="h-4 w-4" />
+            {isProjection ? 'Ajouter revenu projeté' : 'Ajouter un revenu'}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nouveau revenu {isProjection ? '(projection)' : ''}</DialogTitle>
+          <DialogTitle>{editIncome ? 'Modifier' : 'Nouveau'} revenu {isProjection ? '(projection)' : ''}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -70,7 +83,7 @@ export function IncomeForm({ onSubmit, isProjection = false }: IncomeFormProps) 
               <DatePicker value={endDate} onChange={setEndDate} />
             </div>
           </div>
-          <Button type="submit" className="w-full">Ajouter</Button>
+          <Button type="submit" className="w-full">{editIncome ? 'Mettre à jour' : 'Ajouter'}</Button>
         </form>
       </DialogContent>
     </Dialog>
