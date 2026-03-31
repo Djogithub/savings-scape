@@ -51,12 +51,12 @@ const Index = () => {
             <p className="text-xs text-muted-foreground">Gestion de comptes personnels</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={handleExport}>
-              <Download className="h-3 w-3" />
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleExport}>
+              <Download className="h-4 w-4" />
               Exporter
             </Button>
-            <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="h-3 w-3" />
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-4 w-4" />
               Importer
             </Button>
             <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />

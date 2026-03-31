@@ -275,8 +275,8 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateNext}>
               <ChevronRight className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" className="ml-2 gap-1 text-xs" onClick={navigateToday}>
-              <Calendar className="h-3 w-3" />
+            <Button variant="outline" size="sm" className="ml-2 gap-2" onClick={navigateToday}>
+              <Calendar className="h-4 w-4" />
               Aujourd'hui
             </Button>
           </div>
