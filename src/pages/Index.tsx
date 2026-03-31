@@ -9,8 +9,9 @@ import { TimelineChart } from '@/components/TimelineChart';
 import { ChargeForm } from '@/components/ChargeForm';
 import { CategoryBreakdown } from '@/components/CategoryBreakdown';
 import { Button } from '@/components/ui/button';
-import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload } from 'lucide-react';
+import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTheme } from '@/hooks/useTheme';
 
 const Index = () => {
   const {
@@ -23,6 +24,7 @@ const Index = () => {
   } = useFinanceData();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   const handleExport = () => {
     exportData(data);
@@ -60,6 +62,9 @@ const Index = () => {
               Importer
             </Button>
             <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+            <Button variant="outline" size="icon" className="h-9 w-9" onClick={toggleTheme} title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}>
+              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </Button>
           </div>
         </div>
       </header>
