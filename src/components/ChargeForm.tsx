@@ -21,10 +21,11 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
   const [amount, setAmount] = useState(editCharge?.amount?.toString() ?? '');
   const [type, setType] = useState<ChargeType>(editCharge?.type ?? 'fixed');
   const [category, setCategory] = useState<ChargeCategory>(editCharge?.category ?? 'autre');
-  const [startDate, setStartDate] = useState(editCharge?.startDate ?? new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(editCharge?.startDate ?? '');
   const [endDate, setEndDate] = useState(editCharge?.endDate ?? '');
   const [totalAmount, setTotalAmount] = useState(editCharge?.totalAmount?.toString() ?? '');
   const [paidAmount, setPaidAmount] = useState(editCharge?.paidAmount?.toString() ?? '');
+  const [interestRate, setInterestRate] = useState(editCharge?.interestRate?.toString() ?? '');
   const [monthlyDay, setMonthlyDay] = useState(editCharge?.monthlyDay?.toString() ?? '1');
   const [notes, setNotes] = useState(editCharge?.notes ?? '');
 
