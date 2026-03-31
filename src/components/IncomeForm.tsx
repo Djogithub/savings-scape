@@ -26,7 +26,7 @@ export function IncomeForm({ onSubmit, isProjection = false }: IncomeFormProps) 
       name,
       amount: parseFloat(amount),
       isRecurring,
-      startDate,
+      startDate: startDate || undefined,
       endDate: endDate || undefined,
       isProjection,
     });
