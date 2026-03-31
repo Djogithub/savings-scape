@@ -71,7 +71,7 @@ const Index = () => {
               <ListChecks className="h-4 w-4" />
               Situation actuelle
             </TabsTrigger>
-            <TabsTrigger value="categories" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="categories" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground mx-[10px] my-[10px] px-[12px] rounded-sm">
               <PieChart className="h-4 w-4" />
               Par catégorie
             </TabsTrigger>
