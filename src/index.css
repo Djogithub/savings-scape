@@ -47,6 +47,47 @@
     --glass: 0 0% 100% / 0.7;
     --glass-border: 220 13% 88%;
   }
+
+  .dark {
+    --background: 220 12% 14%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 12%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 152 44% 49%;
+    --primary-foreground: 220 15% 10%;
+
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 152 44% 49%;
+    --accent-foreground: 220 20% 7%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 152 44% 49%;
+
+    --success: 152 44% 49%;
+    --warning: 38 92% 50%;
+    --info: 217 91% 60%;
+
+    --chart-income: 152 44% 49%;
+    --chart-expense: 0 72% 51%;
+    --chart-projected: 217 91% 60%;
+
+    --glass: 220 18% 10% / 0.6;
+    --glass-border: 220 14% 22%;
+  }
 }
 
 @layer base {
