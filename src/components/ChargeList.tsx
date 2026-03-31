@@ -41,13 +41,10 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="text-muted-foreground text-sm">{charges.length} charge{charges.length !== 1 ? 's' : ''}</span>
-          <span className="text-muted-foreground text-sm mx-2">·</span>
-          <span className="text-sm font-semibold text-destructive">{formatCurrency(totalMonthly)}/mois</span>
-        </div>
-        <ChargeForm onSubmit={onAdd} isProjection={isProjection} />
+      <div>
+        <span className="text-muted-foreground text-sm">{charges.length} charge{charges.length !== 1 ? 's' : ''}</span>
+        <span className="text-muted-foreground text-sm mx-2">·</span>
+        <span className="text-sm font-semibold text-destructive">{formatCurrency(totalMonthly)}/mois</span>
       </div>
 
       {charges.length === 0 && (

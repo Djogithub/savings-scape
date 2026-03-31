@@ -91,6 +91,7 @@ const Index = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">Charges</h2>
+                  <ChargeForm onSubmit={addCharge} />
                 </div>
                 <ChargeList
                   charges={actualCharges}
@@ -139,6 +140,7 @@ const Index = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">Charges projetées</h2>
+                  <ChargeForm onSubmit={(c) => addCharge({ ...c, isProjection: true })} isProjection />
                 </div>
                 <ChargeList
                   charges={projectedCharges}
