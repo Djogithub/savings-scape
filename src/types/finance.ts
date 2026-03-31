@@ -70,3 +70,12 @@ export interface FinanceData {
   incomes: Income[];
   version: number;
 }
+
+export interface Scenario {
+  id: string;
+  name: string;
+  charges: Charge[];
+  incomes: Income[];
+  createdAt: string;
+  color?: string;
+}
