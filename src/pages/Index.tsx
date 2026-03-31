@@ -5,6 +5,7 @@ import { ChargeList } from '@/components/ChargeList';
 import { IncomeList } from '@/components/IncomeList';
 import { IncomeForm } from '@/components/IncomeForm';
 import { TimelineChart } from '@/components/TimelineChart';
+import { ChargeForm } from '@/components/ChargeForm';
 import { BarChart3, ListChecks, GitCompare } from 'lucide-react';
 
 const Index = () => {
