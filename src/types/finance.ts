@@ -60,7 +60,7 @@ export interface Income {
   name: string;
   amount: number;
   isRecurring: boolean;
-  startDate: string;
+  startDate?: string;
   endDate?: string;
   isProjection?: boolean;
 }
