@@ -17,7 +17,7 @@ export function IncomeForm({ onSubmit, isProjection = false }: IncomeFormProps) 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [isRecurring, setIsRecurring] = useState(true);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
