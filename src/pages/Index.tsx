@@ -65,7 +65,7 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8">
-        <Tabs defaultValue="actual" className="space-y-6 px-[10px]">
+        <Tabs defaultValue="actual" className="space-y-6">
           <TabsList className="bg-secondary/50 p-1 rounded-lg">
             <TabsTrigger value="actual" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <ListChecks className="h-4 w-4" />
