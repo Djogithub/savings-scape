@@ -123,16 +123,22 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
             </div>
           </div>
           {isCredit && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Montant total du crédit (€)</Label>
-                <Input type="number" step="0.01" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} />
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Montant total du crédit (€)</Label>
+                  <Input type="number" step="0.01" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Déjà remboursé (€)</Label>
+                  <Input type="number" step="0.01" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label>Déjà remboursé (€)</Label>
-                <Input type="number" step="0.01" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} />
+                <Label>Taux d'intérêt annuel (%)</Label>
+                <Input type="number" step="0.01" min="0" max="100" value={interestRate} onChange={e => setInterestRate(e.target.value)} placeholder="Ex: 3.5" />
               </div>
-            </div>
+            </>
           )}
           <div className="space-y-2">
             <Label>Notes</Label>
