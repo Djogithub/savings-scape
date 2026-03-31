@@ -25,9 +25,7 @@ const Index = () => {
             <h1 className="text-2xl font-bold gradient-text">MonBudget</h1>
             <p className="text-xs text-muted-foreground">Gestion de comptes personnels</p>
           </div>
-          <div className="flex gap-2">
-            <IncomeForm onSubmit={addIncome} />
-          </div>
+          <div className="flex gap-2" />
         </div>
       </header>
 
