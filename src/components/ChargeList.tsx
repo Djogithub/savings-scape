@@ -69,16 +69,23 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                   {CHARGE_TYPE_LABELS[charge.type]}
                 </Badge>
               </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {new Date(charge.startDate).toLocaleDateString('fr-FR')}
-                  {charge.endDate && ` → ${new Date(charge.endDate).toLocaleDateString('fr-FR')}`}
-                </span>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+                {charge.startDate && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {new Date(charge.startDate).toLocaleDateString('fr-FR')}
+                    {charge.endDate && ` → ${new Date(charge.endDate).toLocaleDateString('fr-FR')}`}
+                  </span>
+                )}
                 {charge.totalAmount && (
                   <span className="flex items-center gap-1">
                     <CreditCard className="h-3 w-3" />
                     Reste: {formatCurrency(charge.totalAmount - (charge.paidAmount ?? 0))}
+                  </span>
+                )}
+                {charge.interestRate != null && (
+                  <span className="text-amber-400">
+                    Taux: {charge.interestRate}%
                   </span>
                 )}
               </div>

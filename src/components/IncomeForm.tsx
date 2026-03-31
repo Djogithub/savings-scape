@@ -17,7 +17,7 @@ export function IncomeForm({ onSubmit, isProjection = false }: IncomeFormProps) 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [isRecurring, setIsRecurring] = useState(true);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,7 +26,7 @@ export function IncomeForm({ onSubmit, isProjection = false }: IncomeFormProps) 
       name,
       amount: parseFloat(amount),
       isRecurring,
-      startDate,
+      startDate: startDate || undefined,
       endDate: endDate || undefined,
       isProjection,
     });
@@ -61,8 +61,8 @@ export function IncomeForm({ onSubmit, isProjection = false }: IncomeFormProps) 
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date de début</Label>
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
+              <Label>Date de début <span className="text-muted-foreground text-xs">(optionnel)</span></Label>
+              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Date de fin</Label>

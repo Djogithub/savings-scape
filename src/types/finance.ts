@@ -45,11 +45,12 @@ export interface Charge {
   amount: number;
   type: ChargeType;
   category: ChargeCategory;
-  startDate: string; // ISO date
+  startDate?: string; // ISO date, required for credits
   endDate?: string; // ISO date, for credits
   monthlyDay?: number; // day of month for recurring
   totalAmount?: number; // for credits, total to pay
   paidAmount?: number; // for credits, already paid
+  interestRate?: number; // annual interest rate in %
   isProjection?: boolean;
   notes?: string;
 }
@@ -59,7 +60,7 @@ export interface Income {
   name: string;
   amount: number;
   isRecurring: boolean;
-  startDate: string;
+  startDate?: string;
   endDate?: string;
   isProjection?: boolean;
 }

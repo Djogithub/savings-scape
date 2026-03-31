@@ -1,4 +1,5 @@
-import { useFinanceData } from '@/hooks/useFinanceData';
+import { useRef } from 'react';
+import { useFinanceData, exportData, importData } from '@/hooks/useFinanceData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SummaryCards } from '@/components/SummaryCards';
 import { ChargeList } from '@/components/ChargeList';
@@ -6,26 +7,60 @@ import { IncomeList } from '@/components/IncomeList';
 import { IncomeForm } from '@/components/IncomeForm';
 import { TimelineChart } from '@/components/TimelineChart';
 import { ChargeForm } from '@/components/ChargeForm';
-import { BarChart3, ListChecks, GitCompare } from 'lucide-react';
+import { CategoryBreakdown } from '@/components/CategoryBreakdown';
+import { Button } from '@/components/ui/button';
+import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Index = () => {
   const {
+    data,
     actualCharges, projectedCharges,
     actualIncomes, projectedIncomes,
     addCharge, updateCharge, deleteCharge,
     addIncome, deleteIncome,
+    loadFromImport,
   } = useFinanceData();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = () => {
+    exportData(data);
+    toast.success('Données exportées avec succès');
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const imported = await importData(file);
+      loadFromImport(imported);
+      toast.success('Données importées avec succès');
+    } catch (err: any) {
+      toast.error(err.message || 'Erreur lors de l\'import');
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border/50 backdrop-blur-xl sticky top-0 z-50 bg-background/80">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold gradient-text">MonBudget</h1>
             <p className="text-xs text-muted-foreground">Gestion de comptes personnels</p>
           </div>
-          <div className="flex gap-2" />
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={handleExport}>
+              <Download className="h-3 w-3" />
+              Exporter
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1 text-xs" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-3 w-3" />
+              Importer
+            </Button>
+            <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+          </div>
         </div>
       </header>
 
@@ -35,6 +70,10 @@ const Index = () => {
             <TabsTrigger value="actual" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <ListChecks className="h-4 w-4" />
               Situation actuelle
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <PieChart className="h-4 w-4" />
+              Par catégorie
             </TabsTrigger>
             <TabsTrigger value="timeline" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <BarChart3 className="h-4 w-4" />
@@ -49,9 +88,8 @@ const Index = () => {
           {/* Actual Tab */}
           <TabsContent value="actual" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Colonne Charges */}
               <div className="space-y-4">
-              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">Charges</h2>
                 </div>
                 <ChargeList
@@ -61,8 +99,6 @@ const Index = () => {
                   onAdd={addCharge}
                 />
               </div>
-
-              {/* Colonne Revenus */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">Revenus</h2>
@@ -71,9 +107,12 @@ const Index = () => {
                 <IncomeList incomes={actualIncomes} onDelete={deleteIncome} />
               </div>
             </div>
-
-            {/* Solde disponible below both columns */}
             <SummaryCards charges={actualCharges} incomes={actualIncomes} />
+          </TabsContent>
+
+          {/* Categories Tab */}
+          <TabsContent value="categories" className="space-y-6">
+            <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
           </TabsContent>
 
           {/* Timeline Tab */}
@@ -89,7 +128,6 @@ const Index = () => {
                 ⚡ Mode projection — Ajoutez des charges et revenus hypothétiques pour comparer avec votre situation actuelle.
               </p>
             </div>
-
             <TimelineChart
               charges={actualCharges}
               incomes={actualIncomes}
@@ -97,7 +135,6 @@ const Index = () => {
               projectedIncomes={projectedIncomes}
               showProjections
             />
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">

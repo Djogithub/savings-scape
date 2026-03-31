@@ -21,10 +21,11 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
   const [amount, setAmount] = useState(editCharge?.amount?.toString() ?? '');
   const [type, setType] = useState<ChargeType>(editCharge?.type ?? 'fixed');
   const [category, setCategory] = useState<ChargeCategory>(editCharge?.category ?? 'autre');
-  const [startDate, setStartDate] = useState(editCharge?.startDate ?? new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(editCharge?.startDate ?? '');
   const [endDate, setEndDate] = useState(editCharge?.endDate ?? '');
   const [totalAmount, setTotalAmount] = useState(editCharge?.totalAmount?.toString() ?? '');
   const [paidAmount, setPaidAmount] = useState(editCharge?.paidAmount?.toString() ?? '');
+  const [interestRate, setInterestRate] = useState(editCharge?.interestRate?.toString() ?? '');
   const [monthlyDay, setMonthlyDay] = useState(editCharge?.monthlyDay?.toString() ?? '1');
   const [notes, setNotes] = useState(editCharge?.notes ?? '');
 
@@ -37,10 +38,11 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
       amount: parseFloat(amount),
       type,
       category,
-      startDate,
+      startDate: startDate || undefined,
       endDate: endDate || undefined,
       totalAmount: totalAmount ? parseFloat(totalAmount) : undefined,
       paidAmount: paidAmount ? parseFloat(paidAmount) : undefined,
+      interestRate: interestRate ? parseFloat(interestRate) : undefined,
       monthlyDay: monthlyDay ? parseInt(monthlyDay) : undefined,
       isProjection,
       notes: notes || undefined,
@@ -53,7 +55,7 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
     }
     setOpen(false);
     if (!editCharge) {
-      setName(''); setAmount(''); setTotalAmount(''); setPaidAmount(''); setNotes('');
+      setName(''); setAmount(''); setTotalAmount(''); setPaidAmount(''); setInterestRate(''); setNotes('');
     }
   };
 
@@ -112,8 +114,8 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date de début</Label>
-              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
+              <Label>Date de début {isCredit && <span className="text-destructive">*</span>}</Label>
+              <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required={isCredit} />
             </div>
             <div className="space-y-2">
               <Label>Date de fin</Label>
@@ -121,16 +123,22 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
             </div>
           </div>
           {isCredit && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Montant total du crédit (€)</Label>
-                <Input type="number" step="0.01" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} />
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Montant total du crédit (€)</Label>
+                  <Input type="number" step="0.01" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Déjà remboursé (€)</Label>
+                  <Input type="number" step="0.01" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label>Déjà remboursé (€)</Label>
-                <Input type="number" step="0.01" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} />
+                <Label>Taux d'intérêt annuel (%)</Label>
+                <Input type="number" step="0.01" min="0" max="100" value={interestRate} onChange={e => setInterestRate(e.target.value)} placeholder="Ex: 3.5" />
               </div>
-            </div>
+            </>
           )}
           <div className="space-y-2">
             <Label>Notes</Label>
