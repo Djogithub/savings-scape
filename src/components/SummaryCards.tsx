@@ -26,7 +26,7 @@ const cardVariants = {
   }),
 };
 
-export function SummaryCards({ charges, incomes }: SummaryCardsProps) {
+export function SummaryCards({ charges, incomes, compact = false }: SummaryCardsProps) {
   const totalCharges = charges.reduce((s, c) => s + c.amount, 0);
   const totalIncomes = incomes.reduce((s, i) => s + i.amount, 0);
   const solde = totalIncomes - totalCharges;
