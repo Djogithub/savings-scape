@@ -200,7 +200,4 @@ const Index = () => {
   );
 };
 
-// Need Wallet icon
-import { Wallet } from 'lucide-react';
-
 export default Index;
