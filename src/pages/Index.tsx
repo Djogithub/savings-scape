@@ -45,7 +45,7 @@ const Index = () => {
 
   const {
     scenarios,
-    createScenario, deleteScenario, renameScenario, duplicateScenario,
+    createScenario, deleteScenario, renameScenario, updateScenarioColor, duplicateScenario,
     addChargeToScenario, updateChargeInScenario, deleteChargeFromScenario,
     addIncomeToScenario, updateIncomeInScenario, deleteIncomeFromScenario,
   } = useScenarios();
