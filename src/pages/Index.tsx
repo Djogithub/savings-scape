@@ -12,7 +12,7 @@ import { CategoryBreakdown } from '@/components/CategoryBreakdown';
 import { ScenarioManager } from '@/components/ScenarioManager';
 import { ScenarioComparison } from '@/components/ScenarioComparison';
 import { Button } from '@/components/ui/button';
-import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Scale, Wallet } from 'lucide-react';
+import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { motion, AnimatePresence } from 'framer-motion';
