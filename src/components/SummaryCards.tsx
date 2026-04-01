@@ -1,4 +1,4 @@
-import { Charge, Income, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal } from '@/types/finance';
+import { Charge, Income, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth } from '@/types/finance';
 import { TrendingDown, TrendingUp, Wallet, PiggyBank } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -27,7 +27,8 @@ export function SummaryCards({ charges, incomes, compact = false }: SummaryCards
   const totalCharges = getCurrentMonthChargesTotal(charges);
   const totalIncomes = getCurrentMonthIncomesTotal(incomes);
   const solde = totalIncomes - totalCharges;
-  const fixedCharges = charges.filter(c => c.type === 'fixed').reduce((s, c) => s + c.amount, 0);
+  const now = new Date();
+  const fixedCharges = charges.filter(c => c.type === 'fixed').reduce((s, c) => s + getChargeAmountForMonth(c, now.getFullYear(), now.getMonth()), 0);
   const savingsRate = totalIncomes > 0 ? ((solde / totalIncomes) * 100) : 0;
 
   const cards = [

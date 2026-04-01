@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { Scenario, Charge, Income } from '@/types/finance';
+import { Scenario, Charge, Income, PatrimoineItem } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChargeList } from './ChargeList';
 import { ChargeForm } from './ChargeForm';
 import { IncomeList } from './IncomeList';
 import { IncomeForm } from './IncomeForm';
+import { PatrimoineList } from './PatrimoineList';
+import { PatrimoineForm } from './PatrimoineForm';
 import { SummaryCards } from './SummaryCards';
 import { ScenarioComparison } from './ScenarioComparison';
-import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale } from 'lucide-react';
+import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,7 +27,8 @@ interface ScenarioManagerProps {
   scenarios: Scenario[];
   actualCharges: Charge[];
   actualIncomes: Income[];
-  onCreateScenario: (name: string, charges?: Charge[], incomes?: Income[]) => string;
+  actualPatrimoine: PatrimoineItem[];
+  onCreateScenario: (name: string, charges?: Charge[], incomes?: Income[], patrimoine?: PatrimoineItem[]) => string;
   onDeleteScenario: (id: string) => void;
   onRenameScenario: (id: string, name: string) => void;
   onUpdateScenarioColor: (id: string, color: string) => void;
@@ -35,13 +39,17 @@ interface ScenarioManagerProps {
   onAddIncome: (scenarioId: string, income: Omit<Income, 'id'>) => void;
   onUpdateIncome: (scenarioId: string, incomeId: string, updates: Partial<Income>) => void;
   onDeleteIncome: (scenarioId: string, incomeId: string) => void;
+  onAddPatrimoine: (scenarioId: string, item: Omit<PatrimoineItem, 'id'>) => void;
+  onUpdatePatrimoine: (scenarioId: string, itemId: string, updates: Partial<PatrimoineItem>) => void;
+  onDeletePatrimoine: (scenarioId: string, itemId: string) => void;
 }
 
 export function ScenarioManager({
-  scenarios, actualCharges, actualIncomes,
+  scenarios, actualCharges, actualIncomes, actualPatrimoine,
   onCreateScenario, onDeleteScenario, onRenameScenario, onUpdateScenarioColor, onDuplicateScenario,
   onAddCharge, onUpdateCharge, onDeleteCharge,
   onAddIncome, onUpdateIncome, onDeleteIncome,
+  onAddPatrimoine, onUpdatePatrimoine, onDeletePatrimoine,
 }: ScenarioManagerProps) {
   const [activeScenarioId, setActiveScenarioId] = useState<string | null>(scenarios[0]?.id ?? null);
   const [newName, setNewName] = useState('');
@@ -59,6 +67,7 @@ export function ScenarioManager({
       newName.trim(),
       createMode === 'copy' ? actualCharges : [],
       createMode === 'copy' ? actualIncomes : [],
+      createMode === 'copy' ? actualPatrimoine : [],
     );
     setActiveScenarioId(id);
     setNewName('');
@@ -152,7 +161,6 @@ export function ScenarioManager({
       {/* Detail view */}
       {view === 'detail' && (
         <div className="space-y-6">
-          {/* Scenario cards */}
           {scenarios.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
               <p className="text-lg mb-2">Aucun scénario</p>
@@ -255,12 +263,20 @@ export function ScenarioManager({
                 className="space-y-5"
               >
                 <SummaryCards charges={activeScenario.charges} incomes={activeScenario.incomes} compact />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+
+                {/* Charges collapsible */}
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full group">
+                    <div className="flex items-center gap-3">
                       <h2 className="text-base font-semibold">Charges</h2>
-                      <ChargeForm onSubmit={(c) => onAddCharge(activeScenario.id, c)} isProjection />
+                      <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{activeScenario.charges.length}</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <ChargeForm onSubmit={(c) => onAddCharge(activeScenario.id, c)} isProjection />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3">
                     <ChargeList
                       charges={activeScenario.charges}
                       onDelete={(cid) => onDeleteCharge(activeScenario.id, cid)}
@@ -268,12 +284,22 @@ export function ScenarioManager({
                       onAdd={(c) => onAddCharge(activeScenario.id, c)}
                       isProjection
                     />
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Revenus collapsible */}
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full group">
+                    <div className="flex items-center gap-3">
                       <h2 className="text-base font-semibold">Revenus</h2>
-                      <IncomeForm onSubmit={(i) => onAddIncome(activeScenario.id, i)} isProjection />
+                      <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{activeScenario.incomes.length}</span>
                     </div>
+                    <div className="flex items-center gap-2">
+                      <IncomeForm onSubmit={(i) => onAddIncome(activeScenario.id, i)} isProjection />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3">
                     <IncomeList
                       incomes={activeScenario.incomes}
                       onDelete={(iid) => onDeleteIncome(activeScenario.id, iid)}
@@ -281,8 +307,30 @@ export function ScenarioManager({
                       onAdd={(i) => onAddIncome(activeScenario.id, i)}
                       isProjection
                     />
-                  </div>
-                </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Patrimoine collapsible */}
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full group">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-base font-semibold">Patrimoine</h2>
+                      <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{activeScenario.patrimoine.length}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <PatrimoineForm onSubmit={(p) => onAddPatrimoine(activeScenario.id, p)} />
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-3">
+                    <PatrimoineList
+                      items={activeScenario.patrimoine}
+                      onDelete={(pid) => onDeletePatrimoine(activeScenario.id, pid)}
+                      onUpdate={(pid, u) => onUpdatePatrimoine(activeScenario.id, pid, u)}
+                      onAdd={(p) => onAddPatrimoine(activeScenario.id, p)}
+                    />
+                  </CollapsibleContent>
+                </Collapsible>
               </motion.div>
             </AnimatePresence>
           )}

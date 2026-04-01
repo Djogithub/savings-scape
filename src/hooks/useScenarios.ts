@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { Scenario, Charge, Income } from '@/types/finance';
+import { useState, useCallback, useEffect } from 'react';
+import { Scenario, Charge, Income, PatrimoineItem } from '@/types/finance';
 
 const SCENARIOS_KEY = 'finance-app-scenarios';
 
@@ -12,7 +12,11 @@ const SCENARIO_COLORS = [
 function loadScenarios(): Scenario[] {
   try {
     const raw = localStorage.getItem(SCENARIOS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Migration: add patrimoine array if missing
+      return parsed.map((s: any) => ({ ...s, patrimoine: s.patrimoine || [] }));
+    }
   } catch (e) {
     console.error('Failed to load scenarios:', e);
   }
@@ -34,12 +38,13 @@ export function useScenarios() {
     saveScenarios(scenarios);
   }, [scenarios]);
 
-  const createScenario = useCallback((name: string, baseCharges: Charge[] = [], baseIncomes: Income[] = []) => {
+  const createScenario = useCallback((name: string, baseCharges: Charge[] = [], baseIncomes: Income[] = [], basePatrimoine: PatrimoineItem[] = []) => {
     const newScenario: Scenario = {
       id: crypto.randomUUID(),
       name,
       charges: baseCharges.map(c => ({ ...c, id: crypto.randomUUID(), isProjection: true, originId: c.id })),
       incomes: baseIncomes.map(i => ({ ...i, id: crypto.randomUUID(), isProjection: true, originId: i.id })),
+      patrimoine: basePatrimoine.map(p => ({ ...p, id: crypto.randomUUID() })),
       createdAt: new Date().toISOString(),
       color: SCENARIO_COLORS[scenarios.length % SCENARIO_COLORS.length],
     };
@@ -47,26 +52,19 @@ export function useScenarios() {
     return newScenario.id;
   }, [scenarios.length]);
 
-  // Sync all scenarios with the current base charges & incomes
-  const syncWithBase = useCallback((baseCharges: Charge[], baseIncomes: Income[]) => {
+  const syncWithBase = useCallback((baseCharges: Charge[], baseIncomes: Income[], basePatrimoine: PatrimoineItem[] = []) => {
     setScenarios(prev => prev.map(scenario => {
       // --- Sync charges ---
-      const updatedCharges = [...scenario.charges];
       const baseChargeIds = new Set(baseCharges.map(c => c.id));
-      
-      // Update existing linked charges & remove ones deleted from base
-      const syncedCharges = updatedCharges.filter(sc => {
-        if (!sc.originId) return true; // manually added to scenario, keep
-        return baseChargeIds.has(sc.originId); // keep only if base still has it
+      const syncedCharges = scenario.charges.filter(sc => {
+        if (!sc.originId) return true;
+        return baseChargeIds.has(sc.originId);
       }).map(sc => {
         if (!sc.originId) return sc;
         const base = baseCharges.find(c => c.id === sc.originId);
         if (!base) return sc;
-        // Update from base, preserving scenario-specific overrides (id, isProjection, originId)
         return { ...base, id: sc.id, isProjection: true, originId: sc.originId };
       });
-      
-      // Add new base charges not yet in scenario
       const existingOriginIds = new Set(syncedCharges.map(c => c.originId).filter(Boolean));
       const newCharges = baseCharges
         .filter(c => !existingOriginIds.has(c.id))
@@ -74,7 +72,6 @@ export function useScenarios() {
 
       // --- Sync incomes ---
       const baseIncomeIds = new Set(baseIncomes.map(i => i.id));
-      
       const syncedIncomes = scenario.incomes.filter(si => {
         if (!si.originId) return true;
         return baseIncomeIds.has(si.originId);
@@ -84,11 +81,13 @@ export function useScenarios() {
         if (!base) return si;
         return { ...base, id: si.id, isProjection: true, originId: si.originId };
       });
-      
       const existingIncomeOriginIds = new Set(syncedIncomes.map(i => i.originId).filter(Boolean));
       const newIncomes = baseIncomes
         .filter(i => !existingIncomeOriginIds.has(i.id))
         .map(i => ({ ...i, id: crypto.randomUUID(), isProjection: true, originId: i.id }));
+
+      // --- Sync patrimoine (no originId tracking, just ensure base items present) ---
+      // Keep scenario patrimoine as-is (user manages it independently after creation)
 
       return {
         ...scenario,
@@ -120,6 +119,7 @@ export function useScenarios() {
         name: `${source.name} (copie)`,
         charges: source.charges.map(c => ({ ...c, id: crypto.randomUUID() })),
         incomes: source.incomes.map(i => ({ ...i, id: crypto.randomUUID() })),
+        patrimoine: source.patrimoine.map(p => ({ ...p, id: crypto.randomUUID() })),
         createdAt: new Date().toISOString(),
         color: SCENARIO_COLORS[prev.length % SCENARIO_COLORS.length],
       };
@@ -127,6 +127,7 @@ export function useScenarios() {
     });
   }, []);
 
+  // Charge CRUD
   const addChargeToScenario = useCallback((scenarioId: string, charge: Omit<Charge, 'id'>) => {
     setScenarios(prev => prev.map(s =>
       s.id === scenarioId
@@ -151,6 +152,7 @@ export function useScenarios() {
     ));
   }, []);
 
+  // Income CRUD
   const addIncomeToScenario = useCallback((scenarioId: string, income: Omit<Income, 'id'>) => {
     setScenarios(prev => prev.map(s =>
       s.id === scenarioId
@@ -175,6 +177,31 @@ export function useScenarios() {
     ));
   }, []);
 
+  // Patrimoine CRUD
+  const addPatrimoineToScenario = useCallback((scenarioId: string, item: Omit<PatrimoineItem, 'id'>) => {
+    setScenarios(prev => prev.map(s =>
+      s.id === scenarioId
+        ? { ...s, patrimoine: [...s.patrimoine, { ...item, id: crypto.randomUUID() }] }
+        : s
+    ));
+  }, []);
+
+  const updatePatrimoineInScenario = useCallback((scenarioId: string, itemId: string, updates: Partial<PatrimoineItem>) => {
+    setScenarios(prev => prev.map(s =>
+      s.id === scenarioId
+        ? { ...s, patrimoine: s.patrimoine.map(p => p.id === itemId ? { ...p, ...updates } : p) }
+        : s
+    ));
+  }, []);
+
+  const deletePatrimoineFromScenario = useCallback((scenarioId: string, itemId: string) => {
+    setScenarios(prev => prev.map(s =>
+      s.id === scenarioId
+        ? { ...s, patrimoine: s.patrimoine.filter(p => p.id !== itemId) }
+        : s
+    ));
+  }, []);
+
   return {
     scenarios,
     createScenario,
@@ -188,6 +215,9 @@ export function useScenarios() {
     addIncomeToScenario,
     updateIncomeInScenario,
     deleteIncomeFromScenario,
+    addPatrimoineToScenario,
+    updatePatrimoineInScenario,
+    deletePatrimoineFromScenario,
     syncWithBase,
   };
 }

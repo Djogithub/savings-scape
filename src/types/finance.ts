@@ -202,6 +202,7 @@ export interface Scenario {
   name: string;
   charges: Charge[];
   incomes: Income[];
+  patrimoine: PatrimoineItem[];
   createdAt: string;
   color?: string;
 }

@@ -12,9 +12,10 @@ import { CategoryBreakdown } from '@/components/CategoryBreakdown';
 import { ScenarioManager } from '@/components/ScenarioManager';
 import { PatrimoineList } from '@/components/PatrimoineList';
 import { PatrimoineForm } from '@/components/PatrimoineForm';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 import { Button } from '@/components/ui/button';
-import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet, Landmark } from 'lucide-react';
+import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,6 +46,7 @@ const Index = () => {
     createScenario, deleteScenario, renameScenario, updateScenarioColor, duplicateScenario,
     addChargeToScenario, updateChargeInScenario, deleteChargeFromScenario,
     addIncomeToScenario, updateIncomeInScenario, deleteIncomeFromScenario,
+    addPatrimoineToScenario, updatePatrimoineInScenario, deletePatrimoineFromScenario,
     syncWithBase,
   } = useScenarios();
 
@@ -54,9 +56,9 @@ const Index = () => {
 
   useEffect(() => {
     if (scenarios.length > 0) {
-      syncWithBase(data.charges, data.incomes);
+      syncWithBase(data.charges, data.incomes, data.patrimoine);
     }
-  }, [data.charges, data.incomes]);
+  }, [data.charges, data.incomes, data.patrimoine]);
 
   const handleExport = () => {
     exportData(data);
@@ -126,17 +128,13 @@ const Index = () => {
                 <ListChecks className="h-4 w-4" />
                 <span className="hidden sm:inline">Situation</span>
               </TabsTrigger>
-              <TabsTrigger value="patrimoine" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Landmark className="h-4 w-4" />
-                <span className="hidden sm:inline">Patrimoine</span>
-              </TabsTrigger>
               <TabsTrigger value="categories" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 <PieChart className="h-4 w-4" />
                 <span className="hidden sm:inline">Catégories</span>
               </TabsTrigger>
               <TabsTrigger value="timeline" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Timeline</span>
+                <span className="hidden sm:inline">Synthèse</span>
               </TabsTrigger>
               <TabsTrigger value="projections" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 <GitCompare className="h-4 w-4" />
@@ -150,35 +148,57 @@ const Index = () => {
               {activeTab === 'actual' && (
                 <div className="space-y-6">
                   <SummaryCards charges={actualCharges} incomes={actualIncomes} />
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold tracking-tight">Charges</h2>
-                        <ChargeForm onSubmit={addCharge} />
-                      </div>
-                      <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} />
-                    </div>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold tracking-tight">Revenus</h2>
-                        <IncomeForm onSubmit={addIncome} />
-                      </div>
-                      <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} />
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {activeTab === 'patrimoine' && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-lg font-semibold tracking-tight">Patrimoine</h2>
-                      <p className="text-sm text-muted-foreground">Suivez l'évolution de vos actifs : épargne, immobilier, placements…</p>
-                    </div>
-                    <PatrimoineForm onSubmit={addPatrimoine} />
-                  </div>
-                  <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} />
+                  {/* Charges collapsible */}
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full group">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-lg font-semibold tracking-tight">Charges</h2>
+                        <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualCharges.length}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ChargeForm onSubmit={addCharge} />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4">
+                      <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} />
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Revenus collapsible */}
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full group">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-lg font-semibold tracking-tight">Revenus</h2>
+                        <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualIncomes.length}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <IncomeForm onSubmit={addIncome} />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4">
+                      <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} />
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Patrimoine collapsible */}
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full group">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-lg font-semibold tracking-tight">Patrimoine</h2>
+                        <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{patrimoine.length}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <PatrimoineForm onSubmit={addPatrimoine} />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4">
+                      <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} />
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               )}
 
@@ -209,6 +229,7 @@ const Index = () => {
                     scenarios={scenarios}
                     actualCharges={actualCharges}
                     actualIncomes={actualIncomes}
+                    actualPatrimoine={patrimoine}
                     onCreateScenario={createScenario}
                     onDeleteScenario={deleteScenario}
                     onRenameScenario={renameScenario}
@@ -220,6 +241,9 @@ const Index = () => {
                     onAddIncome={addIncomeToScenario}
                     onUpdateIncome={updateIncomeInScenario}
                     onDeleteIncome={deleteIncomeFromScenario}
+                    onAddPatrimoine={addPatrimoineToScenario}
+                    onUpdatePatrimoine={updatePatrimoineInScenario}
+                    onDeletePatrimoine={deletePatrimoineFromScenario}
                   />
                 </div>
               )}
