@@ -28,22 +28,29 @@ const CATEGORY_COLORS: Record<string, string> = {
   'autre': 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-500/15 dark:text-gray-400 dark:border-gray-500/20',
 };
 
-const BAR_COLORS: Record<string, string> = {
-  'credit-regroup': 'bg-orange-500',
-  'credit-conso': 'bg-amber-500',
-  'credit-immo': 'bg-red-500',
-  'ecole': 'bg-blue-500',
-  'digital': 'bg-violet-500',
-  'impots': 'bg-rose-500',
-  'impots-exceptionnels': 'bg-pink-500',
-  'energie': 'bg-yellow-500',
-  'auto': 'bg-cyan-500',
-  'nourriture': 'bg-green-500',
-  'vetements': 'bg-fuchsia-500',
-  'sante': 'bg-teal-500',
-  'loisirs': 'bg-indigo-500',
-  'autre': 'bg-gray-500',
+// HSL hue values for gradient bars
+const CATEGORY_HUES: Record<string, number> = {
+  'credit-regroup': 25,
+  'credit-conso': 40,
+  'credit-immo': 0,
+  'ecole': 220,
+  'digital': 270,
+  'impots': 340,
+  'impots-exceptionnels': 330,
+  'energie': 50,
+  'auto': 190,
+  'nourriture': 140,
+  'vetements': 290,
+  'sante': 170,
+  'loisirs': 230,
+  'autre': 220,
 };
+
+// Income "categories" for grouping
+const INCOME_TYPES = {
+  recurring: { label: 'Récurrents', hue: 160 },
+  oneTime: { label: 'Ponctuels', hue: 200 },
+} as const;
 
 export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) {
   const grouped = useMemo(() => {
@@ -57,9 +64,23 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
     return Array.from(map.entries()).sort((a, b) => b[1].total - a[1].total);
   }, [charges]);
 
+  const incomeGrouped = useMemo(() => {
+    const recurring = incomes.filter(i => i.isRecurring);
+    const oneTime = incomes.filter(i => !i.isRecurring);
+    const groups: { key: string; label: string; items: Income[]; total: number; hue: number }[] = [];
+    if (recurring.length > 0) {
+      groups.push({ key: 'recurring', label: 'Récurrents', items: recurring, total: recurring.reduce((s, i) => s + i.amount, 0), hue: 160 });
+    }
+    if (oneTime.length > 0) {
+      groups.push({ key: 'oneTime', label: 'Ponctuels', items: oneTime, total: oneTime.reduce((s, i) => s + i.amount, 0), hue: 200 });
+    }
+    return groups.sort((a, b) => b.total - a.total);
+  }, [incomes]);
+
   const totalCharges = charges.reduce((s, c) => s + c.amount, 0);
   const totalIncomes = incomes.reduce((s, i) => s + i.amount, 0);
   const maxCatTotal = grouped.length > 0 ? grouped[0][1].total : 1;
+  const maxIncomeGroupTotal = incomeGrouped.length > 0 ? Math.max(...incomeGrouped.map(g => g.total)) : 1;
 
   return (
     <div className="space-y-6">
@@ -90,6 +111,7 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
         <div className="space-y-4">
           {grouped.map(([cat, { charges: items, total }]) => {
             const pct = totalCharges > 0 ? (total / totalCharges) * 100 : 0;
+            const hue = CATEGORY_HUES[cat] ?? 220;
             return (
               <div key={cat} className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -108,8 +130,11 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
                 </div>
                 <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${BAR_COLORS[cat] ?? BAR_COLORS['autre']}`}
-                    style={{ width: `${(total / maxCatTotal) * 100}%` }}
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${(total / maxCatTotal) * 100}%`,
+                      background: `linear-gradient(90deg, hsl(${hue}, 55%, 58%), hsl(${(hue + 20) % 360}, 45%, 48%))`,
+                    }}
                   />
                 </div>
                 <div className="pl-4 space-y-1">
@@ -126,24 +151,51 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
         </div>
       </div>
 
-      {/* Incomes list */}
-      <div className="glass-card p-6 premium-shadow space-y-4">
-        <h3 className="text-lg font-semibold tracking-tight">Revenus</h3>
+      {/* Incomes by type with bars */}
+      <div className="glass-card p-6 premium-shadow space-y-5">
+        <h3 className="text-lg font-semibold tracking-tight">Revenus par type</h3>
         {incomes.length === 0 && (
           <p className="text-muted-foreground text-sm text-center py-6">Aucun revenu enregistré.</p>
         )}
-        <div className="space-y-2">
-          {incomes.map(income => (
-            <div key={income.id} className="flex items-center justify-between text-sm py-1">
-              <div className="flex items-center gap-2">
-                <span>{income.name}</span>
-                <Badge variant="secondary" className="text-[11px] font-medium border-0 bg-primary/10 text-primary">
-                  {income.isRecurring ? 'Récurrent' : 'Ponctuel'}
-                </Badge>
+        <div className="space-y-4">
+          {incomeGrouped.map(group => {
+            const pct = totalIncomes > 0 ? (group.total / totalIncomes) * 100 : 0;
+            return (
+              <div key={group.key} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-[11px] font-medium border-0 bg-primary/10 text-primary">
+                      {group.label}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {group.items.length} revenu{group.items.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-semibold text-sm">{formatCurrency(group.total)}</span>
+                    <span className="text-xs text-muted-foreground ml-2">({pct.toFixed(1)}%)</span>
+                  </div>
+                </div>
+                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${(group.total / maxIncomeGroupTotal) * 100}%`,
+                      background: `linear-gradient(90deg, hsl(${group.hue}, 50%, 55%), hsl(${(group.hue + 25) % 360}, 42%, 45%))`,
+                    }}
+                  />
+                </div>
+                <div className="pl-4 space-y-1">
+                  {group.items.map(income => (
+                    <div key={income.id} className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>{income.name}</span>
+                      <span className="tabular-nums">{formatCurrency(income.amount)}/mois</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <span className="font-semibold text-primary tabular-nums">{formatCurrency(income.amount)}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
