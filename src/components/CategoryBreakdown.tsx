@@ -1,6 +1,7 @@
-import { Charge, Income, CATEGORY_LABELS, ChargeCategory } from '@/types/finance';
+import { Charge, Income, CATEGORY_LABELS, ChargeCategory, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth } from '@/types/finance';
 import { Badge } from '@/components/ui/badge';
 import { useMemo } from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface CategoryBreakdownProps {
   charges: Charge[];
@@ -11,76 +12,79 @@ function formatCurrency(n: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  'credit-regroup': 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-400 dark:border-orange-500/20',
-  'credit-conso': 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/20',
-  'credit-immo': 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/20',
-  'ecole': 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/20',
-  'digital': 'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-500/15 dark:text-violet-400 dark:border-violet-500/20',
-  'impots': 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/20',
-  'impots-exceptionnels': 'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-500/15 dark:text-pink-400 dark:border-pink-500/20',
-  'energie': 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/15 dark:text-yellow-400 dark:border-yellow-500/20',
-  'auto': 'bg-cyan-100 text-cyan-700 border-cyan-200 dark:bg-cyan-500/15 dark:text-cyan-400 dark:border-cyan-500/20',
-  'nourriture': 'bg-green-100 text-green-700 border-green-200 dark:bg-green-500/15 dark:text-green-400 dark:border-green-500/20',
-  'vetements': 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200 dark:bg-fuchsia-500/15 dark:text-fuchsia-400 dark:border-fuchsia-500/20',
-  'sante': 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-500/15 dark:text-teal-400 dark:border-teal-500/20',
-  'loisirs': 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/20',
-  'autre': 'bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-500/15 dark:text-gray-400 dark:border-gray-500/20',
+const CATEGORY_CHART_COLORS: Record<string, string> = {
+  'credit-regroup': 'hsl(25, 55%, 55%)',
+  'credit-conso': 'hsl(40, 55%, 55%)',
+  'credit-immo': 'hsl(0, 55%, 55%)',
+  'ecole': 'hsl(220, 55%, 55%)',
+  'digital': 'hsl(270, 55%, 55%)',
+  'impots': 'hsl(340, 55%, 55%)',
+  'impots-exceptionnels': 'hsl(330, 55%, 55%)',
+  'energie': 'hsl(50, 55%, 55%)',
+  'auto': 'hsl(190, 55%, 55%)',
+  'nourriture': 'hsl(140, 55%, 55%)',
+  'vetements': 'hsl(290, 55%, 55%)',
+  'sante': 'hsl(170, 55%, 55%)',
+  'loisirs': 'hsl(230, 55%, 55%)',
+  'autre': 'hsl(220, 15%, 55%)',
 };
 
-// HSL hue values for gradient bars
-const CATEGORY_HUES: Record<string, number> = {
-  'credit-regroup': 25,
-  'credit-conso': 40,
-  'credit-immo': 0,
-  'ecole': 220,
-  'digital': 270,
-  'impots': 340,
-  'impots-exceptionnels': 330,
-  'energie': 50,
-  'auto': 190,
-  'nourriture': 140,
-  'vetements': 290,
-  'sante': 170,
-  'loisirs': 230,
-  'autre': 220,
+const INCOME_CHART_COLORS = {
+  recurring: 'hsl(160, 50%, 50%)',
+  oneTime: 'hsl(200, 50%, 55%)',
 };
 
-// Income "categories" for grouping
-const INCOME_TYPES = {
-  recurring: { label: 'Récurrents', hue: 160 },
-  oneTime: { label: 'Ponctuels', hue: 200 },
-} as const;
+const CustomTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null;
+  const { name, value, pct } = payload[0].payload;
+  return (
+    <div className="bg-card border border-border rounded-xl p-3 shadow-lg text-sm">
+      <p className="font-medium mb-1">{name}</p>
+      <p className="tabular-nums">{formatCurrency(value)}</p>
+      <p className="text-muted-foreground text-xs">{pct.toFixed(1)}%</p>
+    </div>
+  );
+};
 
 export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) {
-  const grouped = useMemo(() => {
-    const map = new Map<ChargeCategory, { charges: Charge[]; total: number }>();
-    for (const c of charges) {
-      const entry = map.get(c.category) ?? { charges: [], total: 0 };
-      entry.charges.push(c);
-      entry.total += c.amount;
-      map.set(c.category, entry);
-    }
-    return Array.from(map.entries()).sort((a, b) => b[1].total - a[1].total);
-  }, [charges]);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
 
-  const incomeGrouped = useMemo(() => {
+  const chargeData = useMemo(() => {
+    const map = new Map<ChargeCategory, number>();
+    for (const c of charges) {
+      const amt = getChargeAmountForMonth(c, currentYear, currentMonth);
+      if (amt > 0) {
+        map.set(c.category, (map.get(c.category) ?? 0) + amt);
+      }
+    }
+    const total = Array.from(map.values()).reduce((s, v) => s + v, 0);
+    return Array.from(map.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, value]) => ({
+        name: CATEGORY_LABELS[cat],
+        value,
+        pct: total > 0 ? (value / total) * 100 : 0,
+        color: CATEGORY_CHART_COLORS[cat] ?? CATEGORY_CHART_COLORS['autre'],
+        cat,
+      }));
+  }, [charges, currentYear, currentMonth]);
+
+  const incomeData = useMemo(() => {
     const recurring = incomes.filter(i => i.isRecurring);
     const oneTime = incomes.filter(i => !i.isRecurring);
-    const groups: { key: string; label: string; items: Income[]; total: number; hue: number }[] = [];
-    if (recurring.length > 0) {
-      groups.push({ key: 'recurring', label: 'Récurrents', items: recurring, total: recurring.reduce((s, i) => s + i.amount, 0), hue: 160 });
-    }
-    if (oneTime.length > 0) {
-      groups.push({ key: 'oneTime', label: 'Ponctuels', items: oneTime, total: oneTime.reduce((s, i) => s + i.amount, 0), hue: 200 });
-    }
-    return groups.sort((a, b) => b.total - a.total);
+    const totalRecurring = recurring.reduce((s, i) => s + i.amount, 0);
+    const totalOneTime = oneTime.reduce((s, i) => s + i.amount, 0);
+    const total = totalRecurring + totalOneTime;
+    const items: { name: string; value: number; pct: number; color: string }[] = [];
+    if (totalRecurring > 0) items.push({ name: 'Récurrents', value: totalRecurring, pct: total > 0 ? (totalRecurring / total) * 100 : 0, color: INCOME_CHART_COLORS.recurring });
+    if (totalOneTime > 0) items.push({ name: 'Ponctuels', value: totalOneTime, pct: total > 0 ? (totalOneTime / total) * 100 : 0, color: INCOME_CHART_COLORS.oneTime });
+    return items;
   }, [incomes]);
 
-  const totalCharges = charges.reduce((s, c) => s + c.amount, 0);
-  const totalIncomes = incomes.reduce((s, i) => s + i.amount, 0);
-  const maxCatTotal = grouped.length > 0 ? grouped[0][1].total : 1;
-  const maxIncomeGroupTotal = incomeGrouped.length > 0 ? Math.max(...incomeGrouped.map(g => g.total)) : 1;
+  const totalCharges = getCurrentMonthChargesTotal(charges);
+  const totalIncomes = getCurrentMonthIncomesTotal(incomes);
 
   return (
     <div className="space-y-6">
@@ -102,100 +106,110 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
         </div>
       </div>
 
-      {/* Charges by category */}
-      <div className="glass-card p-6 premium-shadow space-y-5">
-        <h3 className="text-lg font-semibold tracking-tight">Charges par catégorie</h3>
-        {grouped.length === 0 && (
-          <p className="text-muted-foreground text-sm text-center py-6">Aucune charge enregistrée.</p>
-        )}
-        <div className="space-y-4">
-          {grouped.map(([cat, { charges: items, total }]) => {
-            const pct = totalCharges > 0 ? (total / totalCharges) * 100 : 0;
-            const hue = CATEGORY_HUES[cat] ?? 220;
-            return (
-              <div key={cat} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${CATEGORY_COLORS[cat] ?? CATEGORY_COLORS['autre']}`}>
-                      {CATEGORY_LABELS[cat]}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {items.length} charge{items.length > 1 ? 's' : ''}
-                    </span>
+      {/* Charts grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Charges donut */}
+        <div className="glass-card p-6 premium-shadow">
+          <h3 className="text-lg font-semibold tracking-tight mb-4">Charges par catégorie</h3>
+          {chargeData.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-6">Aucune charge enregistrée.</p>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={chargeData}
+                    cx="50%" cy="50%"
+                    innerRadius={65} outerRadius={110}
+                    paddingAngle={2}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {chargeData.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Legend */}
+              <div className="flex flex-wrap gap-3 justify-center">
+                {chargeData.map(entry => (
+                  <div key={entry.cat} className="flex items-center gap-1.5 text-xs">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                    <span className="text-muted-foreground">{entry.name}</span>
+                    <span className="font-medium">{entry.pct.toFixed(0)}%</span>
                   </div>
-                  <div className="text-right">
-                    <span className="font-semibold text-sm">{formatCurrency(total)}</span>
-                    <span className="text-xs text-muted-foreground ml-2">({pct.toFixed(1)}%)</span>
-                  </div>
-                </div>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${(total / maxCatTotal) * 100}%`,
-                      background: `linear-gradient(90deg, hsl(${hue}, 55%, 58%), hsl(${(hue + 20) % 360}, 45%, 48%))`,
-                    }}
-                  />
-                </div>
-                <div className="pl-4 space-y-1">
-                  {items.map(item => (
-                    <div key={item.id} className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>{item.name}</span>
-                      <span className="tabular-nums">{formatCurrency(item.amount)}/mois</span>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
-            );
-          })}
+              {/* Detail list */}
+              <div className="w-full space-y-2 mt-2">
+                {chargeData.map(entry => (
+                  <div key={entry.cat} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                      <span className="text-muted-foreground">{entry.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-semibold">{formatCurrency(entry.value)}</span>
+                      <span className="text-xs text-muted-foreground ml-2">({entry.pct.toFixed(1)}%)</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Incomes by type with bars */}
-      <div className="glass-card p-6 premium-shadow space-y-5">
-        <h3 className="text-lg font-semibold tracking-tight">Revenus par type</h3>
-        {incomes.length === 0 && (
-          <p className="text-muted-foreground text-sm text-center py-6">Aucun revenu enregistré.</p>
-        )}
-        <div className="space-y-4">
-          {incomeGrouped.map(group => {
-            const pct = totalIncomes > 0 ? (group.total / totalIncomes) * 100 : 0;
-            return (
-              <div key={group.key} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-[11px] font-medium border-0 bg-primary/10 text-primary">
-                      {group.label}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {group.items.length} revenu{group.items.length > 1 ? 's' : ''}
-                    </span>
+        {/* Income donut */}
+        <div className="glass-card p-6 premium-shadow">
+          <h3 className="text-lg font-semibold tracking-tight mb-4">Revenus par type</h3>
+          {incomeData.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-6">Aucun revenu enregistré.</p>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={incomeData}
+                    cx="50%" cy="50%"
+                    innerRadius={65} outerRadius={110}
+                    paddingAngle={2}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {incomeData.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex flex-wrap gap-3 justify-center">
+                {incomeData.map(entry => (
+                  <div key={entry.name} className="flex items-center gap-1.5 text-xs">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                    <span className="text-muted-foreground">{entry.name}</span>
+                    <span className="font-medium">{entry.pct.toFixed(0)}%</span>
                   </div>
-                  <div className="text-right">
-                    <span className="font-semibold text-sm">{formatCurrency(group.total)}</span>
-                    <span className="text-xs text-muted-foreground ml-2">({pct.toFixed(1)}%)</span>
-                  </div>
-                </div>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${(group.total / maxIncomeGroupTotal) * 100}%`,
-                      background: `linear-gradient(90deg, hsl(${group.hue}, 50%, 55%), hsl(${(group.hue + 25) % 360}, 42%, 45%))`,
-                    }}
-                  />
-                </div>
-                <div className="pl-4 space-y-1">
-                  {group.items.map(income => (
-                    <div key={income.id} className="flex items-center justify-between text-sm text-muted-foreground">
-                      <span>{income.name}</span>
-                      <span className="tabular-nums">{formatCurrency(income.amount)}/mois</span>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
-            );
-          })}
+              <div className="w-full space-y-2 mt-2">
+                {incomeData.map(entry => (
+                  <div key={entry.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                      <span className="text-muted-foreground">{entry.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-semibold">{formatCurrency(entry.value)}</span>
+                      <span className="text-xs text-muted-foreground ml-2">({entry.pct.toFixed(1)}%)</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

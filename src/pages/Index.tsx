@@ -10,9 +10,11 @@ import { TimelineChart } from '@/components/TimelineChart';
 import { ChargeForm } from '@/components/ChargeForm';
 import { CategoryBreakdown } from '@/components/CategoryBreakdown';
 import { ScenarioManager } from '@/components/ScenarioManager';
+import { PatrimoineList } from '@/components/PatrimoineList';
+import { PatrimoineForm } from '@/components/PatrimoineForm';
 
 import { Button } from '@/components/ui/button';
-import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet } from 'lucide-react';
+import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet, Landmark } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,17 +22,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 const tabContentVariants = {
   hidden: { opacity: 0, y: 16, filter: 'blur(4px)' },
   visible: {
-    opacity: 1,
-    y: 0,
-    filter: 'blur(0px)',
+    opacity: 1, y: 0, filter: 'blur(0px)',
     transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
   },
-  exit: {
-    opacity: 0,
-    y: -8,
-    filter: 'blur(4px)',
-    transition: { duration: 0.2 },
-  },
+  exit: { opacity: 0, y: -8, filter: 'blur(4px)', transition: { duration: 0.2 } },
 };
 
 const Index = () => {
@@ -38,8 +33,10 @@ const Index = () => {
     data,
     actualCharges, projectedCharges,
     actualIncomes, projectedIncomes,
+    patrimoine,
     addCharge, updateCharge, deleteCharge,
     addIncome, updateIncome, deleteIncome,
+    addPatrimoine, updatePatrimoine, deletePatrimoine,
     loadFromImport,
   } = useFinanceData();
 
@@ -55,7 +52,6 @@ const Index = () => {
   const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('actual');
 
-  // Sync scenarios whenever base charges/incomes change
   useEffect(() => {
     if (scenarios.length > 0) {
       syncWithBase(data.charges, data.incomes);
@@ -82,7 +78,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Premium Header */}
       <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -111,8 +106,7 @@ const Index = () => {
             <div className="w-px h-5 bg-border mx-1" />
             <motion.div whileTap={{ scale: 0.9, rotate: 180 }} transition={{ duration: 0.3 }}>
               <Button
-                variant="ghost"
-                size="icon"
+                variant="ghost" size="icon"
                 className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground"
                 onClick={toggleTheme}
                 title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}
@@ -126,12 +120,15 @@ const Index = () => {
 
       <main className="container mx-auto px-6 py-8 space-y-8 max-w-7xl">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          {/* Premium pill navigation */}
           <div className="flex justify-center">
             <TabsList className="bg-muted/60 backdrop-blur-sm p-1 rounded-2xl border border-border/40 gap-0.5 h-auto">
               <TabsTrigger value="actual" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 <ListChecks className="h-4 w-4" />
                 <span className="hidden sm:inline">Situation</span>
+              </TabsTrigger>
+              <TabsTrigger value="patrimoine" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <Landmark className="h-4 w-4" />
+                <span className="hidden sm:inline">Patrimoine</span>
               </TabsTrigger>
               <TabsTrigger value="categories" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 <PieChart className="h-4 w-4" />
@@ -149,13 +146,7 @@ const Index = () => {
           </div>
 
           <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={tabContentVariants}
-            >
+            <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
               {activeTab === 'actual' && (
                 <div className="space-y-6">
                   <SummaryCards charges={actualCharges} incomes={actualIncomes} />
@@ -165,26 +156,29 @@ const Index = () => {
                         <h2 className="text-lg font-semibold tracking-tight">Charges</h2>
                         <ChargeForm onSubmit={addCharge} />
                       </div>
-                      <ChargeList
-                        charges={actualCharges}
-                        onDelete={deleteCharge}
-                        onUpdate={updateCharge}
-                        onAdd={addCharge}
-                      />
+                      <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} />
                     </div>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold tracking-tight">Revenus</h2>
                         <IncomeForm onSubmit={addIncome} />
                       </div>
-                      <IncomeList
-                        incomes={actualIncomes}
-                        onDelete={deleteIncome}
-                        onUpdate={updateIncome}
-                        onAdd={addIncome}
-                      />
+                      <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} />
                     </div>
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'patrimoine' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold tracking-tight">Patrimoine</h2>
+                      <p className="text-sm text-muted-foreground">Suivez l'évolution de vos actifs : épargne, immobilier, placements…</p>
+                    </div>
+                    <PatrimoineForm onSubmit={addPatrimoine} />
+                  </div>
+                  <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} />
                 </div>
               )}
 
@@ -205,9 +199,7 @@ const Index = () => {
                 <div className="space-y-6">
                   <motion.div
                     className="glass-card p-4 border-l-4 border-l-warning/60"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
+                    initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
                   >
                     <p className="text-sm text-muted-foreground">
                       <span className="font-medium text-foreground">Scénarios</span> — Simulez différentes situations financières. Chaque scénario peut partir de vos données actuelles ou être créé de zéro.
@@ -231,7 +223,6 @@ const Index = () => {
                   />
                 </div>
               )}
-
             </motion.div>
           </AnimatePresence>
         </Tabs>
