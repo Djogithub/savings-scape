@@ -229,11 +229,8 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
   };
 
   const projectionFilterOptions: { key: ProjectionFilter; label: string }[] = [
-    { key: 'all', label: 'Tout' },
-    { key: 'Revenus', label: 'Revenus' },
-    { key: 'Charges', label: 'Charges' },
-    { key: 'Solde', label: 'Solde' },
-    { key: 'Balance', label: 'Balance' },
+    { key: 'solde-disponible', label: 'Solde disponible' },
+    { key: 'patrimoine', label: 'Patrimoine' },
   ];
 
   return (
