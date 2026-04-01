@@ -72,7 +72,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>(
     scenarios.map(s => s.id)
   );
-  const [projectionFilter, setProjectionFilter] = useState<ProjectionFilter>('all');
+  const [projectionFilter, setProjectionFilter] = useState<ProjectionFilter>('solde-disponible');
 
   // Drag-and-drop state for bar chart ordering
   const [barOrder, setBarOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
