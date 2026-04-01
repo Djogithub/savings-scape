@@ -1,4 +1,4 @@
-import { Charge, Income, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal } from '@/types/finance';
+import { Charge, Income, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth } from '@/types/finance';
 import { TrendingDown, TrendingUp, Wallet, PiggyBank } from 'lucide-react';
 import { motion } from 'framer-motion';
 
