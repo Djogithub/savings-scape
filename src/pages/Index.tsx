@@ -224,15 +224,6 @@ const Index = () => {
                 </div>
               )}
 
-              {activeTab === 'comparison' && (
-                <div className="space-y-6">
-                  <ScenarioComparison
-                    scenarios={scenarios}
-                    actualCharges={actualCharges}
-                    actualIncomes={actualIncomes}
-                  />
-                </div>
-              )}
             </motion.div>
           </AnimatePresence>
         </Tabs>
