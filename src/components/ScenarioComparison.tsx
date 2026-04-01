@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Scenario, Charge, Income } from '@/types/finance';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import { CATEGORY_LABELS, ChargeCategory } from '@/types/finance';
 import { motion } from 'framer-motion';
-import { TrendingUp, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, ArrowUpRight, ArrowDownRight, Minus, CheckCircle2, GripVertical } from 'lucide-react';
 
 interface ScenarioComparisonProps {
   scenarios: Scenario[];
@@ -29,20 +29,18 @@ function getTotal(items: { amount: number }[]) {
   return items.reduce((s, i) => s + i.amount, 0);
 }
 
-// Softer, pastel-leaning versions of original colors
 const SOFT_COLORS = [
-  'hsl(160, 45%, 52%)',   // soft green
-  'hsl(220, 55%, 62%)',   // soft blue
-  'hsl(340, 50%, 62%)',   // soft rose
-  'hsl(45, 70%, 58%)',    // soft gold
-  'hsl(280, 45%, 62%)',   // soft purple
-  'hsl(180, 40%, 52%)',   // soft teal
-  'hsl(15, 55%, 60%)',    // soft coral
-  'hsl(200, 50%, 58%)',   // soft sky
+  'hsl(160, 45%, 52%)',
+  'hsl(220, 55%, 62%)',
+  'hsl(340, 50%, 62%)',
+  'hsl(45, 70%, 58%)',
+  'hsl(280, 45%, 62%)',
+  'hsl(180, 40%, 52%)',
+  'hsl(15, 55%, 60%)',
+  'hsl(200, 50%, 58%)',
 ];
 
 function getSoftColor(scenario: Scenario, index: number): string {
-  // Map scenario's original color hue to a softer version
   const color = scenario.color;
   if (color) {
     const hueMatch = color.match(/hsl\((\d+)/);
@@ -54,6 +52,12 @@ function getSoftColor(scenario: Scenario, index: number): string {
   return SOFT_COLORS[index % SOFT_COLORS.length];
 }
 
+// Extract hue from hsl string
+function extractHue(hslStr: string): number {
+  const m = hslStr.match(/hsl\((\d+)/);
+  return m ? parseInt(m[1]) : 160;
+}
+
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.97 },
   visible: (i: number) => ({
@@ -62,10 +66,37 @@ const cardVariants = {
   }),
 };
 
+type ProjectionFilter = 'all' | 'Revenus' | 'Charges' | 'Solde';
+
 export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: ScenarioComparisonProps) {
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>(
     scenarios.map(s => s.id)
   );
+  const [projectionFilter, setProjectionFilter] = useState<ProjectionFilter>('all');
+
+  // Drag-and-drop state for bar chart ordering
+  const [barOrder, setBarOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+
+  // Keep barOrder in sync with scenarios
+  const currentOrder = barOrder.filter(id => id === '__actual__' || scenarios.some(s => s.id === id && selectedScenarios.includes(s.id)));
+  const missingIds = selectedScenarios.filter(id => !currentOrder.includes(id));
+  const effectiveOrder = [...currentOrder, ...missingIds];
+  if (!effectiveOrder.includes('__actual__')) effectiveOrder.unshift('__actual__');
+
+  const handleDragStart = (id: string) => setDraggedItem(id);
+  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedItem || draggedItem === targetId) return;
+    const newOrder = [...effectiveOrder];
+    const fromIdx = newOrder.indexOf(draggedItem);
+    const toIdx = newOrder.indexOf(targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    newOrder.splice(fromIdx, 1);
+    newOrder.splice(toIdx, 0, draggedItem);
+    setBarOrder(newOrder);
+  };
+  const handleDragEnd = () => setDraggedItem(null);
 
   if (scenarios.length === 0) {
     return (
@@ -98,18 +129,28 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
   const worstLabel = worstBalance === actualBalance ? 'Actuel' : (filteredScenarios.find(s => getTotal(s.incomes) - getTotal(s.charges) === worstBalance)?.name ?? '');
 
   const softActualColor = 'hsl(160, 45%, 52%)';
-  const allColors = [softActualColor, ...filteredScenarios.map((s, i) => getSoftColor(s, i + 1))];
-  const allNames = ['Actuel', ...filteredScenarios.map(s => s.name)];
+  
+  // Build color map
+  const colorMap: Record<string, string> = { '__actual__': softActualColor };
+  filteredScenarios.forEach((s, i) => { colorMap[s.id] = getSoftColor(s, i + 1); });
 
-  const barData = [
-    { name: 'Actuel', Revenus: actualTotalIncomes, Charges: actualTotalCharges, Solde: actualBalance },
-    ...filteredScenarios.map(s => ({
+  const allColors = effectiveOrder.map(id => colorMap[id] || softActualColor);
+  const allNames = effectiveOrder.map(id => id === '__actual__' ? 'Actuel' : (filteredScenarios.find(s => s.id === id)?.name ?? ''));
+
+  // Bar data ordered by drag order
+  const barData = effectiveOrder.map(id => {
+    if (id === '__actual__') {
+      return { name: 'Actuel', Revenus: actualTotalIncomes, Charges: actualTotalCharges, Solde: actualBalance };
+    }
+    const s = filteredScenarios.find(sc => sc.id === id);
+    if (!s) return null;
+    return {
       name: s.name.length > 12 ? s.name.slice(0, 12) + '…' : s.name,
       Revenus: getTotal(s.incomes),
       Charges: getTotal(s.charges),
       Solde: getTotal(s.incomes) - getTotal(s.charges),
-    })),
-  ];
+    };
+  }).filter(Boolean);
 
   const monthlyProjection = Array.from({ length: 12 }, (_, month) => {
     const entry: Record<string, string | number> = { name: `M${month + 1}` };
@@ -117,6 +158,24 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
     filteredScenarios.forEach(s => {
       const bal = getTotal(s.incomes) - getTotal(s.charges);
       entry[s.name] = bal * (month + 1);
+    });
+    return entry;
+  });
+
+  // For projection filter: build separate data
+  const monthlyProjectionFiltered = Array.from({ length: 12 }, (_, month) => {
+    const entry: Record<string, string | number> = { name: `M${month + 1}` };
+    const addEntry = (label: string, incomes: number, charges: number) => {
+      if (projectionFilter === 'all' || projectionFilter === 'Solde') {
+        // In 'all' mode we show cumulative balance as before
+      }
+      if (projectionFilter === 'Revenus') entry[label] = incomes * (month + 1);
+      else if (projectionFilter === 'Charges') entry[label] = charges * (month + 1);
+      else entry[label] = (incomes - charges) * (month + 1); // Solde or all
+    };
+    addEntry('Actuel', actualTotalIncomes, actualTotalCharges);
+    filteredScenarios.forEach(s => {
+      addEntry(s.name, getTotal(s.incomes), getTotal(s.charges));
     });
     return entry;
   });
@@ -130,6 +189,24 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
     });
     return entry;
   }).filter(d => Object.values(d).some(v => typeof v === 'number' && v > 0));
+
+  // Gradient defs for bar chart
+  const barGradientDefs = (
+    <defs>
+      <linearGradient id="bar-grad-revenus" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="hsl(160, 55%, 58%)" stopOpacity={1} />
+        <stop offset="100%" stopColor="hsl(160, 40%, 42%)" stopOpacity={0.85} />
+      </linearGradient>
+      <linearGradient id="bar-grad-charges" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="hsl(0, 55%, 65%)" stopOpacity={1} />
+        <stop offset="100%" stopColor="hsl(0, 40%, 48%)" stopOpacity={0.85} />
+      </linearGradient>
+      <linearGradient id="bar-grad-solde" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="hsl(220, 60%, 68%)" stopOpacity={1} />
+        <stop offset="100%" stopColor="hsl(220, 45%, 50%)" stopOpacity={0.85} />
+      </linearGradient>
+    </defs>
+  );
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
@@ -148,6 +225,13 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
       </div>
     );
   };
+
+  const projectionFilterOptions: { key: ProjectionFilter; label: string }[] = [
+    { key: 'all', label: 'Tout' },
+    { key: 'Revenus', label: 'Revenus' },
+    { key: 'Charges', label: 'Charges' },
+    { key: 'Solde', label: 'Solde' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -209,14 +293,14 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
                     <th className="text-left py-3 px-5 font-medium text-muted-foreground text-xs uppercase tracking-wider">Métrique</th>
                     <th className="text-right py-3 px-5 font-medium text-xs uppercase tracking-wider">
                       <span className="flex items-center justify-end gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: allColors[0] }} />
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: softActualColor }} />
                         Actuel
                       </span>
                     </th>
                     {filteredScenarios.map((s, i) => (
                       <th key={s.id} className="text-right py-3 px-5 font-medium text-xs uppercase tracking-wider">
                         <span className="flex items-center justify-end gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: allColors[i + 1] }} />
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colorMap[s.id] }} />
                           {s.name}
                         </span>
                       </th>
@@ -266,42 +350,93 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
 
       {/* Charts grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Bar chart with soft colors */}
+        {/* Bar chart with drag-and-drop ordering */}
         <motion.div custom={4} initial="hidden" animate="visible" variants={cardVariants}>
           <Card className="glass-card">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Revenus vs Charges vs Solde</CardTitle></CardHeader>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Revenus vs Charges vs Solde</CardTitle>
+                <span className="text-[11px] text-muted-foreground">↕ Glissez pour réorganiser</span>
+              </div>
+            </CardHeader>
             <CardContent>
+              {/* Drag-and-drop reorder pills */}
+              <div className="flex flex-wrap gap-1.5 mb-4">
+                {effectiveOrder.map((id, i) => {
+                  const label = id === '__actual__' ? 'Actuel' : (filteredScenarios.find(s => s.id === id)?.name ?? '');
+                  if (!label) return null;
+                  return (
+                    <div
+                      key={id}
+                      draggable
+                      onDragStart={() => handleDragStart(id)}
+                      onDragOver={(e) => handleDragOver(e, id)}
+                      onDragEnd={handleDragEnd}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-grab active:cursor-grabbing border transition-all ${
+                        draggedItem === id ? 'opacity-50 border-primary bg-primary/5' : 'border-border/50 bg-muted/30 hover:bg-muted/60'
+                      }`}
+                    >
+                      <GripVertical className="h-3 w-3 text-muted-foreground" />
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colorMap[id] || softActualColor }} />
+                      {label}
+                    </div>
+                  );
+                })}
+              </div>
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={barData} barCategoryGap="20%">
+                  {barGradientDefs}
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${formatCompact(v)}€`} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
-                  <Bar dataKey="Revenus" fill="hsl(160, 45%, 55%)" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="Charges" fill="hsl(0, 45%, 60%)" radius={[6, 6, 0, 0]} />
-                  <Bar dataKey="Solde" fill="hsl(220, 50%, 62%)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Revenus" fill="url(#bar-grad-revenus)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Charges" fill="url(#bar-grad-charges)" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Solde" fill="url(#bar-grad-solde)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Area chart with soft gradients */}
+        {/* Area chart with filter toggles */}
         <motion.div custom={5} initial="hidden" animate="visible" variants={cardVariants}>
           <Card className="glass-card">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Projection cumulée sur 12 mois</CardTitle></CardHeader>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="text-base">Projection cumulée sur 12 mois</CardTitle>
+                <div className="flex gap-1 bg-muted/40 rounded-xl p-0.5">
+                  {projectionFilterOptions.map(opt => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setProjectionFilter(opt.key)}
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                        projectionFilter === opt.key
+                          ? 'bg-card shadow-sm text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={320}>
-                <AreaChart data={monthlyProjection}>
+                <AreaChart data={monthlyProjectionFiltered}>
                   <defs>
-                    {allNames.map((name, i) => (
-                      <linearGradient key={name} id={`soft-gradient-${i}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={allColors[i]} stopOpacity={0.25} />
-                        <stop offset="50%" stopColor={allColors[i]} stopOpacity={0.08} />
-                        <stop offset="100%" stopColor={allColors[i]} stopOpacity={0.01} />
-                      </linearGradient>
-                    ))}
+                    {allNames.map((name, i) => {
+                      const hue = extractHue(allColors[i]);
+                      return (
+                        <linearGradient key={name} id={`proj-gradient-${i}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={`hsl(${hue}, 50%, 60%)`} stopOpacity={0.3} />
+                          <stop offset="50%" stopColor={`hsl(${hue}, 45%, 55%)`} stopOpacity={0.1} />
+                          <stop offset="100%" stopColor={`hsl(${hue}, 40%, 50%)`} stopOpacity={0.02} />
+                        </linearGradient>
+                      );
+                    })}
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                   <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
@@ -315,7 +450,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
                       dataKey={name}
                       stroke={allColors[i]}
                       strokeWidth={2}
-                      fill={`url(#soft-gradient-${i})`}
+                      fill={`url(#proj-gradient-${i})`}
                       dot={false}
                       activeDot={{ r: 4, strokeWidth: 2, fill: 'hsl(var(--card))' }}
                     />
