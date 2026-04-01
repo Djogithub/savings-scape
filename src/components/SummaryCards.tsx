@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 interface SummaryCardsProps {
   charges: Charge[];
   incomes: Income[];
+  compact?: boolean;
 }
 
 function formatCurrency(n: number) {
