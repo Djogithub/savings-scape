@@ -10,7 +10,7 @@ import { TimelineChart } from '@/components/TimelineChart';
 import { ChargeForm } from '@/components/ChargeForm';
 import { CategoryBreakdown } from '@/components/CategoryBreakdown';
 import { ScenarioManager } from '@/components/ScenarioManager';
-import { ScenarioComparison } from '@/components/ScenarioComparison';
+
 import { Button } from '@/components/ui/button';
 import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
