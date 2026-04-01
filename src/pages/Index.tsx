@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useFinanceData, exportData, importData } from '@/hooks/useFinanceData';
 import { useScenarios } from '@/hooks/useScenarios';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -48,11 +48,19 @@ const Index = () => {
     createScenario, deleteScenario, renameScenario, updateScenarioColor, duplicateScenario,
     addChargeToScenario, updateChargeInScenario, deleteChargeFromScenario,
     addIncomeToScenario, updateIncomeInScenario, deleteIncomeFromScenario,
+    syncWithBase,
   } = useScenarios();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState('actual');
+
+  // Sync scenarios whenever base charges/incomes change
+  useEffect(() => {
+    if (scenarios.length > 0) {
+      syncWithBase(data.charges, data.incomes);
+    }
+  }, [data.charges, data.incomes]);
 
   const handleExport = () => {
     exportData(data);

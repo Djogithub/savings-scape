@@ -53,6 +53,7 @@ export interface Charge {
   interestRate?: number; // annual interest rate in %
   isProjection?: boolean;
   notes?: string;
+  originId?: string; // links to the base charge this was copied from
 }
 
 export interface Income {
@@ -63,6 +64,7 @@ export interface Income {
   startDate?: string;
   endDate?: string;
   isProjection?: boolean;
+  originId?: string; // links to the base income this was copied from
 }
 
 export interface FinanceData {
