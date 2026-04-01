@@ -86,8 +86,9 @@ export function useScenarios() {
         .filter(i => !existingIncomeOriginIds.has(i.id))
         .map(i => ({ ...i, id: crypto.randomUUID(), isProjection: true, originId: i.id }));
 
-      // --- Sync patrimoine (no originId tracking, just ensure base items present) ---
-      // Keep scenario patrimoine as-is (user manages it independently after creation)
+      // --- Sync patrimoine ---
+      // Patrimoine items from base don't have originId tracking yet, so add it
+      // For now keep scenario patrimoine as-is (user manages independently)
 
       return {
         ...scenario,

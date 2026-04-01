@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChargeList } from './ChargeList';
 import { ChargeForm } from './ChargeForm';
 import { IncomeList } from './IncomeList';
@@ -13,7 +14,7 @@ import { PatrimoineList } from './PatrimoineList';
 import { PatrimoineForm } from './PatrimoineForm';
 import { SummaryCards } from './SummaryCards';
 import { ScenarioComparison } from './ScenarioComparison';
-import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown } from 'lucide-react';
+import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown, FileStack } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -44,6 +45,8 @@ interface ScenarioManagerProps {
   onDeletePatrimoine: (scenarioId: string, itemId: string) => void;
 }
 
+type CreateSource = 'situation' | 'scenario' | 'empty';
+
 export function ScenarioManager({
   scenarios, actualCharges, actualIncomes, actualPatrimoine,
   onCreateScenario, onDeleteScenario, onRenameScenario, onUpdateScenarioColor, onDuplicateScenario,
@@ -54,7 +57,8 @@ export function ScenarioManager({
   const [activeScenarioId, setActiveScenarioId] = useState<string | null>(scenarios[0]?.id ?? null);
   const [newName, setNewName] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
-  const [createMode, setCreateMode] = useState<'empty' | 'copy'>('copy');
+  const [createSource, setCreateSource] = useState<CreateSource>('situation');
+  const [sourceScenarioId, setSourceScenarioId] = useState<string>('');
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [view, setView] = useState<'detail' | 'compare'>('detail');
@@ -63,12 +67,24 @@ export function ScenarioManager({
 
   const handleCreate = () => {
     if (!newName.trim()) return;
-    const id = onCreateScenario(
-      newName.trim(),
-      createMode === 'copy' ? actualCharges : [],
-      createMode === 'copy' ? actualIncomes : [],
-      createMode === 'copy' ? actualPatrimoine : [],
-    );
+    let baseCharges: Charge[] = [];
+    let baseIncomes: Income[] = [];
+    let basePatrimoine: PatrimoineItem[] = [];
+
+    if (createSource === 'situation') {
+      baseCharges = actualCharges;
+      baseIncomes = actualIncomes;
+      basePatrimoine = actualPatrimoine;
+    } else if (createSource === 'scenario') {
+      const source = scenarios.find(s => s.id === sourceScenarioId);
+      if (source) {
+        baseCharges = source.charges;
+        baseIncomes = source.incomes;
+        basePatrimoine = source.patrimoine;
+      }
+    }
+
+    const id = onCreateScenario(newName.trim(), baseCharges, baseIncomes, basePatrimoine);
     setActiveScenarioId(id);
     setNewName('');
     setCreateOpen(false);
@@ -119,21 +135,48 @@ export function ScenarioManager({
                 onChange={e => setNewName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleCreate()}
               />
-              <div className="flex gap-2">
-                <Button
-                  variant={createMode === 'copy' ? 'default' : 'outline'}
-                  size="sm" onClick={() => setCreateMode('copy')} className="gap-2"
-                >
-                  <Copy className="h-4 w-4" /> Copier données actuelles
-                </Button>
-                <Button
-                  variant={createMode === 'empty' ? 'default' : 'outline'}
-                  size="sm" onClick={() => setCreateMode('empty')} className="gap-2"
-                >
-                  <FolderOpen className="h-4 w-4" /> Vide
-                </Button>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Partir de :</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant={createSource === 'situation' ? 'default' : 'outline'}
+                    size="sm" onClick={() => setCreateSource('situation')} className="gap-2"
+                  >
+                    <Copy className="h-4 w-4" /> Ma situation
+                  </Button>
+                  <Button
+                    variant={createSource === 'scenario' ? 'default' : 'outline'}
+                    size="sm" onClick={() => setCreateSource('scenario')} className="gap-2"
+                    disabled={scenarios.length === 0}
+                  >
+                    <FileStack className="h-4 w-4" /> Un scénario
+                  </Button>
+                  <Button
+                    variant={createSource === 'empty' ? 'default' : 'outline'}
+                    size="sm" onClick={() => setCreateSource('empty')} className="gap-2"
+                  >
+                    <FolderOpen className="h-4 w-4" /> Vide
+                  </Button>
+                </div>
+                {createSource === 'scenario' && scenarios.length > 0 && (
+                  <Select value={sourceScenarioId} onValueChange={setSourceScenarioId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choisir un scénario source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {scenarios.map(s => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
-              <Button onClick={handleCreate} className="w-full" disabled={!newName.trim()}>Créer</Button>
+              <Button
+                onClick={handleCreate} className="w-full"
+                disabled={!newName.trim() || (createSource === 'scenario' && !sourceScenarioId)}
+              >
+                Créer
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
