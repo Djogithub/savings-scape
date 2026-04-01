@@ -212,6 +212,7 @@ const Index = () => {
                     onCreateScenario={createScenario}
                     onDeleteScenario={deleteScenario}
                     onRenameScenario={renameScenario}
+                    onUpdateScenarioColor={updateScenarioColor}
                     onDuplicateScenario={duplicateScenario}
                     onAddCharge={addChargeToScenario}
                     onUpdateCharge={updateChargeInScenario}
