@@ -10,9 +10,9 @@ import { TimelineChart } from '@/components/TimelineChart';
 import { ChargeForm } from '@/components/ChargeForm';
 import { CategoryBreakdown } from '@/components/CategoryBreakdown';
 import { ScenarioManager } from '@/components/ScenarioManager';
-import { ScenarioComparison } from '@/components/ScenarioComparison';
+
 import { Button } from '@/components/ui/button';
-import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Scale, Wallet } from 'lucide-react';
+import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -45,7 +45,7 @@ const Index = () => {
 
   const {
     scenarios,
-    createScenario, deleteScenario, renameScenario, duplicateScenario,
+    createScenario, deleteScenario, renameScenario, updateScenarioColor, duplicateScenario,
     addChargeToScenario, updateChargeInScenario, deleteChargeFromScenario,
     addIncomeToScenario, updateIncomeInScenario, deleteIncomeFromScenario,
   } = useScenarios();
@@ -137,10 +137,6 @@ const Index = () => {
                 <GitCompare className="h-4 w-4" />
                 <span className="hidden sm:inline">Scénarios</span>
               </TabsTrigger>
-              <TabsTrigger value="comparison" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Scale className="h-4 w-4" />
-                <span className="hidden sm:inline">Comparer</span>
-              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -216,6 +212,7 @@ const Index = () => {
                     onCreateScenario={createScenario}
                     onDeleteScenario={deleteScenario}
                     onRenameScenario={renameScenario}
+                    onUpdateScenarioColor={updateScenarioColor}
                     onDuplicateScenario={duplicateScenario}
                     onAddCharge={addChargeToScenario}
                     onUpdateCharge={updateChargeInScenario}
@@ -227,15 +224,6 @@ const Index = () => {
                 </div>
               )}
 
-              {activeTab === 'comparison' && (
-                <div className="space-y-6">
-                  <ScenarioComparison
-                    scenarios={scenarios}
-                    actualCharges={actualCharges}
-                    actualIncomes={actualIncomes}
-                  />
-                </div>
-              )}
             </motion.div>
           </AnimatePresence>
         </Tabs>

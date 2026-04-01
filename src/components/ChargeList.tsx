@@ -99,12 +99,21 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                       {charge.endDate && ` → ${new Date(charge.endDate).toLocaleDateString('fr-FR')}`}
                     </span>
                   )}
-                  {charge.totalAmount && (
-                    <span className="flex items-center gap-1">
-                      <CreditCard className="h-3 w-3" />
-                      Reste: {formatCurrency(charge.totalAmount - (charge.paidAmount ?? 0))}
-                    </span>
-                  )}
+                  {charge.totalAmount && (() => {
+                    let remaining = charge.totalAmount - (charge.paidAmount ?? 0);
+                    if (charge.startDate && charge.amount > 0) {
+                      const start = new Date(charge.startDate);
+                      const now = new Date();
+                      const monthsElapsed = Math.max(0, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()));
+                      remaining = Math.max(0, charge.totalAmount - (charge.paidAmount ?? 0) - (monthsElapsed * charge.amount));
+                    }
+                    return (
+                      <span className="flex items-center gap-1">
+                        <CreditCard className="h-3 w-3" />
+                        Reste: {formatCurrency(remaining)}
+                      </span>
+                    );
+                  })()}
                   {charge.interestRate != null && (
                     <span className="text-warning font-medium">
                       Taux: {charge.interestRate}%
