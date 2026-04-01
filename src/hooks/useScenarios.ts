@@ -55,6 +55,10 @@ export function useScenarios() {
     setScenarios(prev => prev.map(s => s.id === id ? { ...s, name } : s));
   }, []);
 
+  const updateScenarioColor = useCallback((id: string, color: string) => {
+    setScenarios(prev => prev.map(s => s.id === id ? { ...s, color } : s));
+  }, []);
+
   const duplicateScenario = useCallback((id: string) => {
     setScenarios(prev => {
       const source = prev.find(s => s.id === id);
