@@ -71,26 +71,28 @@ export function SummaryCards({ charges, incomes, compact = false }: SummaryCards
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={`grid gap-3 ${compact ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'}`}>
       {cards.map((card, i) => (
         <motion.div
           key={card.label}
-          className="glass-card p-5 premium-shadow hover:shadow-md transition-shadow duration-300"
+          className={`glass-card premium-shadow hover:shadow-md transition-shadow duration-300 ${compact ? 'p-3' : 'p-5'}`}
           custom={i}
           initial="hidden"
           animate="visible"
           variants={cardVariants}
           whileHover={{ y: -2, transition: { duration: 0.2 } }}
         >
-          <div className="flex items-start justify-between mb-4">
-            <span className="text-[13px] font-medium text-muted-foreground">{card.label}</span>
-            <div className={`h-8 w-8 rounded-xl ${card.iconBg} flex items-center justify-center`}>
-              <card.icon className={`h-4 w-4 ${card.iconColor}`} />
-            </div>
+          <div className={`flex items-start justify-between ${compact ? 'mb-2' : 'mb-4'}`}>
+            <span className={`font-medium text-muted-foreground ${compact ? 'text-[11px]' : 'text-[13px]'}`}>{card.label}</span>
+            {!compact && (
+              <div className={`h-8 w-8 rounded-xl ${card.iconBg} flex items-center justify-center`}>
+                <card.icon className={`h-4 w-4 ${card.iconColor}`} />
+              </div>
+            )}
           </div>
-          <div className={`text-2xl font-bold tracking-tight ${card.valueColor}`}>{card.value}</div>
+          <div className={`font-bold tracking-tight ${card.valueColor} ${compact ? 'text-lg' : 'text-2xl'}`}>{card.value}</div>
           {card.subtitle && (
-            <p className="text-xs text-muted-foreground mt-1">{card.subtitle}</p>
+            <p className={`text-muted-foreground mt-0.5 ${compact ? 'text-[10px]' : 'text-xs mt-1'}`}>{card.subtitle}</p>
           )}
         </motion.div>
       ))}

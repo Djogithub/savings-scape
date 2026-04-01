@@ -129,6 +129,7 @@ export function useScenarios() {
     createScenario,
     deleteScenario,
     renameScenario,
+    updateScenarioColor,
     duplicateScenario,
     addChargeToScenario,
     updateChargeInScenario,
