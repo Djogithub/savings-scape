@@ -66,7 +66,7 @@ const cardVariants = {
   }),
 };
 
-type ProjectionFilter = 'all' | 'Revenus' | 'Charges' | 'Solde';
+type ProjectionFilter = 'all' | 'Revenus' | 'Charges' | 'Solde' | 'Balance';
 
 export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: ScenarioComparisonProps) {
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>(
