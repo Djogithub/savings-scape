@@ -12,7 +12,7 @@ import { CategoryBreakdown } from '@/components/CategoryBreakdown';
 import { ScenarioManager } from '@/components/ScenarioManager';
 import { ScenarioComparison } from '@/components/ScenarioComparison';
 import { Button } from '@/components/ui/button';
-import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Scale } from 'lucide-react';
+import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Scale, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -56,60 +56,77 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border/50 backdrop-blur-xl sticky top-0 z-50 bg-background/80">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="font-bold gradient-text text-3xl">MonBudget</h1>
-            <p className="text-xs text-muted-foreground">Gestion de comptes personnels</p>
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Wallet className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">MonBudget</h1>
+              <p className="text-[11px] text-muted-foreground leading-none">Gestion de comptes personnels</p>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="gap-2" onClick={handleExport}>
+          <div className="flex items-center gap-1.5">
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={handleExport}>
               <Download className="h-4 w-4" />
-              Exporter
+              <span className="hidden sm:inline">Exporter</span>
             </Button>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => fileInputRef.current?.click()}>
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={() => fileInputRef.current?.click()}>
               <Upload className="h-4 w-4" />
-              Importer
+              <span className="hidden sm:inline">Importer</span>
             </Button>
             <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-            <Button variant="outline" size="icon" className="h-9 w-9" onClick={toggleTheme} title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}>
+            <div className="w-px h-5 bg-border mx-1" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground"
+              onClick={toggleTheme}
+              title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}
+            >
               {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
-        <Tabs defaultValue="actual" className="space-y-6">
-          <TabsList className="bg-secondary/50 p-1 rounded-lg">
-            <TabsTrigger value="actual" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <ListChecks className="h-4 w-4" />
-              Situation actuelle
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <PieChart className="h-4 w-4" />
-              Par catégorie
-            </TabsTrigger>
-            <TabsTrigger value="timeline" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <BarChart3 className="h-4 w-4" />
-              Timeline
-            </TabsTrigger>
-            <TabsTrigger value="projections" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <GitCompare className="h-4 w-4" />
-              Scénarios
-            </TabsTrigger>
-            <TabsTrigger value="comparison" className="gap-2 rounded-md px-4 py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              <Scale className="h-4 w-4" />
-              Comparaison
-            </TabsTrigger>
-          </TabsList>
+      <main className="container mx-auto px-6 py-8 space-y-8 max-w-7xl">
+        <Tabs defaultValue="actual" className="space-y-8">
+          {/* Premium pill navigation */}
+          <div className="flex justify-center">
+            <TabsList className="bg-muted/60 backdrop-blur-sm p-1 rounded-2xl border border-border/40 gap-0.5 h-auto">
+              <TabsTrigger value="actual" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <ListChecks className="h-4 w-4" />
+                <span className="hidden sm:inline">Situation</span>
+              </TabsTrigger>
+              <TabsTrigger value="categories" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <PieChart className="h-4 w-4" />
+                <span className="hidden sm:inline">Catégories</span>
+              </TabsTrigger>
+              <TabsTrigger value="timeline" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Timeline</span>
+              </TabsTrigger>
+              <TabsTrigger value="projections" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <GitCompare className="h-4 w-4" />
+                <span className="hidden sm:inline">Scénarios</span>
+              </TabsTrigger>
+              <TabsTrigger value="comparison" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                <Scale className="h-4 w-4" />
+                <span className="hidden sm:inline">Comparer</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Actual Tab */}
           <TabsContent value="actual" className="space-y-6">
+            <SummaryCards charges={actualCharges} incomes={actualIncomes} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Charges</h2>
+                  <h2 className="text-lg font-semibold tracking-tight">Charges</h2>
                   <ChargeForm onSubmit={addCharge} />
                 </div>
                 <ChargeList
@@ -121,7 +138,7 @@ const Index = () => {
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Revenus</h2>
+                  <h2 className="text-lg font-semibold tracking-tight">Revenus</h2>
                   <IncomeForm onSubmit={addIncome} />
                 </div>
                 <IncomeList
@@ -132,7 +149,6 @@ const Index = () => {
                 />
               </div>
             </div>
-            <SummaryCards charges={actualCharges} incomes={actualIncomes} />
           </TabsContent>
 
           {/* Categories Tab */}
@@ -148,9 +164,9 @@ const Index = () => {
 
           {/* Scenarios Tab */}
           <TabsContent value="projections" className="space-y-6">
-            <div className="glass-card p-4 border-warning/30">
-              <p className="text-sm text-warning">
-                ⚡ Créez des scénarios pour simuler différentes situations financières. Chaque scénario peut partir de vos données actuelles ou être créé de zéro.
+            <div className="glass-card p-4 border-l-4 border-l-warning/60">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium text-foreground">Scénarios</span> — Simulez différentes situations financières. Chaque scénario peut partir de vos données actuelles ou être créé de zéro.
               </p>
             </div>
             <ScenarioManager

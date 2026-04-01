@@ -18,20 +18,20 @@ function formatCurrency(n: number) {
 
 function getCategoryColor(cat: string): string {
   const colors: Record<string, string> = {
-    'credit-regroup': 'bg-orange-500/20 text-orange-400',
-    'credit-conso': 'bg-amber-500/20 text-amber-400',
-    'credit-immo': 'bg-red-500/20 text-red-400',
-    'ecole': 'bg-blue-500/20 text-blue-400',
-    'digital': 'bg-violet-500/20 text-violet-400',
-    'impots': 'bg-rose-500/20 text-rose-400',
-    'impots-exceptionnels': 'bg-pink-500/20 text-pink-400',
-    'energie': 'bg-yellow-500/20 text-yellow-400',
-    'auto': 'bg-cyan-500/20 text-cyan-400',
-    'nourriture': 'bg-green-500/20 text-green-400',
-    'vetements': 'bg-fuchsia-500/20 text-fuchsia-400',
-    'sante': 'bg-teal-500/20 text-teal-400',
-    'loisirs': 'bg-indigo-500/20 text-indigo-400',
-    'autre': 'bg-gray-500/20 text-gray-400',
+    'credit-regroup': 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
+    'credit-conso': 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
+    'credit-immo': 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
+    'ecole': 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+    'digital': 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400',
+    'impots': 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400',
+    'impots-exceptionnels': 'bg-pink-100 text-pink-700 dark:bg-pink-500/15 dark:text-pink-400',
+    'energie': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400',
+    'auto': 'bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400',
+    'nourriture': 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
+    'vetements': 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-500/15 dark:text-fuchsia-400',
+    'sante': 'bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-400',
+    'loisirs': 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400',
+    'autre': 'bg-gray-100 text-gray-700 dark:bg-gray-500/15 dark:text-gray-400',
   };
   return colors[cat] ?? colors['autre'];
 }
@@ -41,28 +41,28 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
 
   return (
     <div className="space-y-3">
-      <div>
-        <span className="text-muted-foreground text-sm">{charges.length} charge{charges.length !== 1 ? 's' : ''}</span>
-        <span className="text-muted-foreground text-sm mx-2">·</span>
-        <span className="text-sm font-semibold text-destructive">{formatCurrency(totalMonthly)}/mois</span>
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-muted-foreground">{charges.length} charge{charges.length !== 1 ? 's' : ''}</span>
+        <span className="text-muted-foreground">·</span>
+        <span className="font-semibold text-destructive">{formatCurrency(totalMonthly)}/mois</span>
       </div>
 
       {charges.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
+        <div className="glass-card text-center py-12 text-muted-foreground text-sm">
           Aucune charge enregistrée. Ajoutez votre première charge.
         </div>
       )}
 
       <div className="space-y-2">
         {charges.map(charge => (
-          <div key={charge.id} className="glass-card p-4 flex items-center justify-between gap-4 group hover:border-primary/30 transition-colors">
+          <div key={charge.id} className="glass-card p-4 flex items-center justify-between gap-4 group">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-medium truncate">{charge.name}</span>
-                <Badge variant="secondary" className={getCategoryColor(charge.category)}>
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="font-medium text-sm truncate">{charge.name}</span>
+                <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${getCategoryColor(charge.category)}`}>
                   {CATEGORY_LABELS[charge.category]}
                 </Badge>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-[11px] font-normal">
                   {CHARGE_TYPE_LABELS[charge.type]}
                 </Badge>
               </div>
@@ -81,26 +81,26 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                   </span>
                 )}
                 {charge.interestRate != null && (
-                  <span className="text-amber-400">
+                  <span className="text-warning font-medium">
                     Taux: {charge.interestRate}%
                   </span>
                 )}
               </div>
             </div>
-            <div className="text-right">
-              <div className="font-bold text-lg">{formatCurrency(charge.amount)}</div>
-              <div className="text-xs text-muted-foreground">/mois</div>
+            <div className="text-right shrink-0">
+              <div className="font-bold text-base tabular-nums">{formatCurrency(charge.amount)}</div>
+              <div className="text-[11px] text-muted-foreground">/mois</div>
             </div>
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
               <ChargeForm
                 editCharge={charge}
                 onSubmit={onAdd}
                 onUpdate={onUpdate}
                 isProjection={isProjection}
-                trigger={<Button variant="ghost" size="icon" className="h-8 w-8"><Edit2 className="h-4 w-4" /></Button>}
+                trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
               />
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => onDelete(charge.id)}>
-                <Trash2 className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(charge.id)}>
+                <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </div>
           </div>
