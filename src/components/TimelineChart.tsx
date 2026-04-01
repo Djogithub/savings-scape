@@ -25,7 +25,7 @@ const MONTHS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août
 const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 function isActiveInMonth(item: { startDate?: string; endDate?: string }, year: number, month: number): boolean {
-  if (!item.startDate) return true; // no start date = always active
+  if (!item.startDate) return true;
   const start = new Date(item.startDate);
   const startMonth = start.getFullYear() * 12 + start.getMonth();
   const targetMonth = year * 12 + month;
@@ -39,7 +39,7 @@ function isActiveInMonth(item: { startDate?: string; endDate?: string }, year: n
 }
 
 function isActiveOnDate(item: { startDate?: string; endDate?: string }, date: Date): boolean {
-  if (!item.startDate) return true; // no start date = always active
+  if (!item.startDate) return true;
   const start = new Date(item.startDate);
   start.setHours(0, 0, 0, 0);
   if (date < start) return false;
@@ -55,20 +55,16 @@ function getWeeksOfMonth(year: number, month: number) {
   const weeks: { start: Date; end: Date; label: string }[] = [];
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
-
   let current = new Date(firstDay);
-  // Align to Monday
   const day = current.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   current.setDate(current.getDate() + diff);
-
   while (current <= lastDay || weeks.length === 0) {
     const start = new Date(current);
     const end = new Date(current);
     end.setDate(end.getDate() + 6);
     weeks.push({
-      start,
-      end,
+      start, end,
       label: `${start.getDate()}/${start.getMonth() + 1} - ${end.getDate()}/${end.getMonth() + 1}`,
     });
     current.setDate(current.getDate() + 7);
@@ -85,6 +81,21 @@ function getDaysOfWeek(weekStart: Date) {
   });
 }
 
+function useChartColors() {
+  const isDark = document.documentElement.classList.contains('dark');
+  return {
+    grid: isDark ? 'hsl(228 12% 18%)' : 'hsl(220 13% 92%)',
+    axis: isDark ? 'hsl(220 10% 50%)' : 'hsl(220 10% 50%)',
+    tooltipBg: isDark ? 'hsl(228 16% 13%)' : 'hsl(0 0% 100%)',
+    tooltipBorder: isDark ? 'hsl(228 12% 20%)' : 'hsl(220 13% 90%)',
+    tooltipText: isDark ? 'hsl(220 20% 93%)' : 'hsl(224 20% 12%)',
+    income: 'hsl(160 60% 42%)',
+    expense: 'hsl(0 65% 55%)',
+    balance: 'hsl(220 85% 58%)',
+    projected: 'hsl(35 90% 52%)',
+  };
+}
+
 export function TimelineChart({ charges, incomes, projectedCharges = [], projectedIncomes = [], showProjections = false }: TimelineChartProps) {
   const currentDate = new Date();
   const [viewMode, setViewMode] = useState<ViewMode>('year');
@@ -92,13 +103,14 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
   const [month, setMonth] = useState(currentDate.getMonth());
   const [weekOffset, setWeekOffset] = useState(0);
 
-  // Get the Monday of the current week
   const currentMonday = useMemo(() => {
     const d = new Date(year, month, 1);
     const weeks = getWeeksOfMonth(year, month);
     const idx = Math.min(weekOffset, weeks.length - 1);
     return weeks[idx]?.start ?? d;
   }, [year, month, weekOffset]);
+
+  const colors = useChartColors();
 
   const data = useMemo(() => {
     if (viewMode === 'year') {
@@ -107,83 +119,52 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
         const activeIncomes = incomes.filter(i => isActiveInMonth(i, year, m));
         const totalCharges = activeCharges.reduce((s, c) => s + c.amount, 0);
         const totalIncomes = activeIncomes.reduce((s, i) => s + i.amount, 0);
-
         let projC = 0, projI = 0;
         if (showProjections) {
           projC = projectedCharges.filter(c => isActiveInMonth(c, year, m)).reduce((s, c) => s + c.amount, 0);
           projI = projectedIncomes.filter(i => isActiveInMonth(i, year, m)).reduce((s, i) => s + i.amount, 0);
         }
-
         return {
           name: MONTHS_SHORT[m],
-          depenses: totalCharges,
-          revenus: totalIncomes,
-          solde: totalIncomes - totalCharges,
-          ...(showProjections ? {
-            depensesProj: totalCharges + projC,
-            revenusProj: totalIncomes + projI,
-            soldeProj: (totalIncomes + projI) - (totalCharges + projC),
-          } : {}),
+          depenses: totalCharges, revenus: totalIncomes, solde: totalIncomes - totalCharges,
+          ...(showProjections ? { depensesProj: totalCharges + projC, revenusProj: totalIncomes + projI, soldeProj: (totalIncomes + projI) - (totalCharges + projC) } : {}),
         };
       });
     }
-
     if (viewMode === 'month') {
       const weeks = getWeeksOfMonth(year, month);
-      return weeks.map(week => {
-        // For weekly buckets within a month, use the monthly amounts / weeks as approximation
-        // or check if active in that month
+      return weeks.map((week, idx) => {
         const activeCharges = charges.filter(c => isActiveInMonth(c, year, month));
         const activeIncomes = incomes.filter(i => isActiveInMonth(i, year, month));
         const totalCharges = activeCharges.reduce((s, c) => s + c.amount, 0) / weeks.length;
         const totalIncomes = activeIncomes.reduce((s, i) => s + i.amount, 0) / weeks.length;
-
         let projC = 0, projI = 0;
         if (showProjections) {
           projC = projectedCharges.filter(c => isActiveInMonth(c, year, month)).reduce((s, c) => s + c.amount, 0) / weeks.length;
           projI = projectedIncomes.filter(i => isActiveInMonth(i, year, month)).reduce((s, i) => s + i.amount, 0) / weeks.length;
         }
-
         return {
-          name: `S${weeks.indexOf(week) + 1}`,
-          fullLabel: week.label,
-          depenses: Math.round(totalCharges),
-          revenus: Math.round(totalIncomes),
-          solde: Math.round(totalIncomes - totalCharges),
-          ...(showProjections ? {
-            depensesProj: Math.round(totalCharges + projC),
-            revenusProj: Math.round(totalIncomes + projI),
-            soldeProj: Math.round((totalIncomes + projI) - (totalCharges + projC)),
-          } : {}),
+          name: `S${idx + 1}`, fullLabel: week.label,
+          depenses: Math.round(totalCharges), revenus: Math.round(totalIncomes), solde: Math.round(totalIncomes - totalCharges),
+          ...(showProjections ? { depensesProj: Math.round(totalCharges + projC), revenusProj: Math.round(totalIncomes + projI), soldeProj: Math.round((totalIncomes + projI) - (totalCharges + projC)) } : {}),
         };
       });
     }
-
-    // Week view: show each day
     const days = getDaysOfWeek(currentMonday);
     return days.map(day => {
       const activeCharges = charges.filter(c => isActiveOnDate(c, day));
       const activeIncomes = incomes.filter(i => isActiveOnDate(i, day));
-      // Daily = monthly / 30 approximation
       const totalCharges = activeCharges.reduce((s, c) => s + c.amount / 30, 0);
       const totalIncomes = activeIncomes.reduce((s, i) => s + i.amount / 30, 0);
-
       let projC = 0, projI = 0;
       if (showProjections) {
         projC = projectedCharges.filter(c => isActiveOnDate(c, day)).reduce((s, c) => s + c.amount / 30, 0);
         projI = projectedIncomes.filter(i => isActiveOnDate(i, day)).reduce((s, i) => s + i.amount / 30, 0);
       }
-
       return {
         name: `${DAYS_FR[day.getDay() === 0 ? 6 : day.getDay() - 1]} ${day.getDate()}`,
-        depenses: Math.round(totalCharges),
-        revenus: Math.round(totalIncomes),
-        solde: Math.round(totalIncomes - totalCharges),
-        ...(showProjections ? {
-          depensesProj: Math.round(totalCharges + projC),
-          revenusProj: Math.round(totalIncomes + projI),
-          soldeProj: Math.round((totalIncomes + projI) - (totalCharges + projC)),
-        } : {}),
+        depenses: Math.round(totalCharges), revenus: Math.round(totalIncomes), solde: Math.round(totalIncomes - totalCharges),
+        ...(showProjections ? { depensesProj: Math.round(totalCharges + projC), revenusProj: Math.round(totalIncomes + projI), soldeProj: Math.round((totalIncomes + projI) - (totalCharges + projC)) } : {}),
       };
     });
   }, [charges, incomes, projectedCharges, projectedIncomes, year, month, weekOffset, viewMode, showProjections, currentMonday]);
@@ -191,20 +172,16 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
   const navigatePrev = () => {
     if (viewMode === 'year') setYear(y => y - 1);
     else if (viewMode === 'month') {
-      if (month === 0) { setMonth(11); setYear(y => y - 1); }
-      else setMonth(m => m - 1);
+      if (month === 0) { setMonth(11); setYear(y => y - 1); } else setMonth(m => m - 1);
       setWeekOffset(0);
     } else {
       const weeks = getWeeksOfMonth(year, month);
       if (weekOffset > 0) setWeekOffset(w => w - 1);
       else {
-        // Go to previous month last week
         const prevMonth = month === 0 ? 11 : month - 1;
         const prevYear = month === 0 ? year - 1 : year;
-        setMonth(prevMonth);
-        setYear(prevYear);
-        const prevWeeks = getWeeksOfMonth(prevYear, prevMonth);
-        setWeekOffset(prevWeeks.length - 1);
+        setMonth(prevMonth); setYear(prevYear);
+        setWeekOffset(getWeeksOfMonth(prevYear, prevMonth).length - 1);
       }
     }
   };
@@ -212,8 +189,7 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
   const navigateNext = () => {
     if (viewMode === 'year') setYear(y => y + 1);
     else if (viewMode === 'month') {
-      if (month === 11) { setMonth(0); setYear(y => y + 1); }
-      else setMonth(m => m + 1);
+      if (month === 11) { setMonth(0); setYear(y => y + 1); } else setMonth(m => m + 1);
       setWeekOffset(0);
     } else {
       const weeks = getWeeksOfMonth(year, month);
@@ -221,19 +197,12 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
       else {
         const nextMonth = month === 11 ? 0 : month + 1;
         const nextYear = month === 11 ? year + 1 : year;
-        setMonth(nextMonth);
-        setYear(nextYear);
-        setWeekOffset(0);
+        setMonth(nextMonth); setYear(nextYear); setWeekOffset(0);
       }
     }
   };
 
-  const navigateToday = () => {
-    const now = new Date();
-    setYear(now.getFullYear());
-    setMonth(now.getMonth());
-    setWeekOffset(0);
-  };
+  const navigateToday = () => { const now = new Date(); setYear(now.getFullYear()); setMonth(now.getMonth()); setWeekOffset(0); };
 
   const getTitle = () => {
     if (viewMode === 'year') return `${year}`;
@@ -248,72 +217,47 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
       {/* Controls */}
       <div className="glass-card p-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          {/* View mode toggle */}
-          <ToggleGroup
-            type="single"
-            value={viewMode}
-            onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }}
-            className="bg-secondary/50 rounded-lg p-1"
-          >
-            <ToggleGroupItem value="week" className="text-xs px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-              Semaine
-            </ToggleGroupItem>
-            <ToggleGroupItem value="month" className="text-xs px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-              Mois
-            </ToggleGroupItem>
-            <ToggleGroupItem value="year" className="text-xs px-3 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-              Année
-            </ToggleGroupItem>
+          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }} className="bg-muted/60 rounded-xl p-1 border border-border/40">
+            <ToggleGroupItem value="week" className="text-xs px-3 rounded-lg data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm">Semaine</ToggleGroupItem>
+            <ToggleGroupItem value="month" className="text-xs px-3 rounded-lg data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm">Mois</ToggleGroupItem>
+            <ToggleGroupItem value="year" className="text-xs px-3 rounded-lg data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm">Année</ToggleGroupItem>
           </ToggleGroup>
 
-          {/* Navigation */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigatePrev}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={navigatePrev}><ChevronLeft className="h-4 w-4" /></Button>
             <span className="text-sm font-semibold min-w-[180px] text-center">{getTitle()}</span>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateNext}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" className="ml-2 gap-2" onClick={navigateToday}>
-              <Calendar className="h-4 w-4" />
-              Aujourd'hui
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={navigateNext}><ChevronRight className="h-4 w-4" /></Button>
+            <Button variant="outline" size="sm" className="ml-2 gap-2 rounded-xl" onClick={navigateToday}>
+              <Calendar className="h-4 w-4" />Aujourd'hui
             </Button>
           </div>
 
-          {/* Month selector for month/week views */}
           {viewMode !== 'year' && (
             <Select value={month.toString()} onValueChange={(v) => { setMonth(parseInt(v)); setWeekOffset(0); }}>
-              <SelectTrigger className="w-[140px] h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MONTHS_FR.map((m, i) => (
-                  <SelectItem key={i} value={i.toString()}>{m}</SelectItem>
-                ))}
-              </SelectContent>
+              <SelectTrigger className="w-[140px] h-8 text-xs rounded-xl"><SelectValue /></SelectTrigger>
+              <SelectContent>{MONTHS_FR.map((m, i) => (<SelectItem key={i} value={i.toString()}>{m}</SelectItem>))}</SelectContent>
             </Select>
           )}
         </div>
       </div>
 
       {/* Chart */}
-      <div className="glass-card p-6">
+      <div className="glass-card p-6 premium-shadow">
         <ResponsiveContainer width="100%" height={350}>
           <ComposedChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 14% 18%)" />
-            <XAxis dataKey="name" stroke="hsl(215 15% 55%)" fontSize={12} />
-            <YAxis stroke="hsl(215 15% 55%)" fontSize={12} tickFormatter={v => `${(v / 1000).toFixed(v >= 1000 ? 0 : 1)}k`} />
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
+            <XAxis dataKey="name" stroke={colors.axis} fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis stroke={colors.axis} fontSize={12} tickFormatter={v => `${(v / 1000).toFixed(v >= 1000 ? 0 : 1)}k`} tickLine={false} axisLine={false} />
             <Tooltip
-              contentStyle={{ backgroundColor: 'hsl(220 18% 12%)', border: '1px solid hsl(220 14% 22%)', borderRadius: '8px', color: 'hsl(210 20% 92%)' }}
+              contentStyle={{ backgroundColor: colors.tooltipBg, border: `1px solid ${colors.tooltipBorder}`, borderRadius: '12px', color: colors.tooltipText, boxShadow: '0 8px 32px -8px rgba(0,0,0,0.15)' }}
               formatter={(value: number, name: string) => [formatCurrency(value), name]}
             />
             <Legend />
-            <Bar dataKey="revenus" name="Revenus" fill="hsl(160 84% 39%)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="depenses" name="Dépenses" fill="hsl(0 72% 51%)" radius={[4, 4, 0, 0]} />
-            <Line type="monotone" dataKey="solde" name="Solde" stroke="hsl(217 91% 60%)" strokeWidth={2} dot={{ fill: 'hsl(217 91% 60%)' }} />
+            <Bar dataKey="revenus" name="Revenus" fill={colors.income} radius={[6, 6, 0, 0]} />
+            <Bar dataKey="depenses" name="Dépenses" fill={colors.expense} radius={[6, 6, 0, 0]} />
+            <Line type="monotone" dataKey="solde" name="Solde" stroke={colors.balance} strokeWidth={2.5} dot={{ fill: colors.balance, r: 4, strokeWidth: 0 }} />
             {showProjections && (
-              <Line type="monotone" dataKey="soldeProj" name="Solde projeté" stroke="hsl(38 92% 50%)" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: 'hsl(38 92% 50%)' }} />
+              <Line type="monotone" dataKey="soldeProj" name="Solde projeté" stroke={colors.projected} strokeWidth={2} strokeDasharray="5 5" dot={{ fill: colors.projected }} />
             )}
           </ComposedChart>
         </ResponsiveContainer>
