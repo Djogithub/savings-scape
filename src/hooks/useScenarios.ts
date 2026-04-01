@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Scenario, Charge, Income } from '@/types/finance';
 
 const SCENARIOS_KEY = 'finance-app-scenarios';
@@ -38,14 +38,65 @@ export function useScenarios() {
     const newScenario: Scenario = {
       id: crypto.randomUUID(),
       name,
-      charges: baseCharges.map(c => ({ ...c, id: crypto.randomUUID(), isProjection: true })),
-      incomes: baseIncomes.map(i => ({ ...i, id: crypto.randomUUID(), isProjection: true })),
+      charges: baseCharges.map(c => ({ ...c, id: crypto.randomUUID(), isProjection: true, originId: c.id })),
+      incomes: baseIncomes.map(i => ({ ...i, id: crypto.randomUUID(), isProjection: true, originId: i.id })),
       createdAt: new Date().toISOString(),
       color: SCENARIO_COLORS[scenarios.length % SCENARIO_COLORS.length],
     };
     setScenarios(prev => [...prev, newScenario]);
     return newScenario.id;
   }, [scenarios.length]);
+
+  // Sync all scenarios with the current base charges & incomes
+  const syncWithBase = useCallback((baseCharges: Charge[], baseIncomes: Income[]) => {
+    setScenarios(prev => prev.map(scenario => {
+      // --- Sync charges ---
+      const updatedCharges = [...scenario.charges];
+      const baseChargeIds = new Set(baseCharges.map(c => c.id));
+      
+      // Update existing linked charges & remove ones deleted from base
+      const syncedCharges = updatedCharges.filter(sc => {
+        if (!sc.originId) return true; // manually added to scenario, keep
+        return baseChargeIds.has(sc.originId); // keep only if base still has it
+      }).map(sc => {
+        if (!sc.originId) return sc;
+        const base = baseCharges.find(c => c.id === sc.originId);
+        if (!base) return sc;
+        // Update from base, preserving scenario-specific overrides (id, isProjection, originId)
+        return { ...base, id: sc.id, isProjection: true, originId: sc.originId };
+      });
+      
+      // Add new base charges not yet in scenario
+      const existingOriginIds = new Set(syncedCharges.map(c => c.originId).filter(Boolean));
+      const newCharges = baseCharges
+        .filter(c => !existingOriginIds.has(c.id))
+        .map(c => ({ ...c, id: crypto.randomUUID(), isProjection: true, originId: c.id }));
+
+      // --- Sync incomes ---
+      const baseIncomeIds = new Set(baseIncomes.map(i => i.id));
+      
+      const syncedIncomes = scenario.incomes.filter(si => {
+        if (!si.originId) return true;
+        return baseIncomeIds.has(si.originId);
+      }).map(si => {
+        if (!si.originId) return si;
+        const base = baseIncomes.find(i => i.id === si.originId);
+        if (!base) return si;
+        return { ...base, id: si.id, isProjection: true, originId: si.originId };
+      });
+      
+      const existingIncomeOriginIds = new Set(syncedIncomes.map(i => i.originId).filter(Boolean));
+      const newIncomes = baseIncomes
+        .filter(i => !existingIncomeOriginIds.has(i.id))
+        .map(i => ({ ...i, id: crypto.randomUUID(), isProjection: true, originId: i.id }));
+
+      return {
+        ...scenario,
+        charges: [...syncedCharges, ...newCharges],
+        incomes: [...syncedIncomes, ...newIncomes],
+      };
+    }));
+  }, []);
 
   const deleteScenario = useCallback((id: string) => {
     setScenarios(prev => prev.filter(s => s.id !== id));
@@ -137,5 +188,6 @@ export function useScenarios() {
     addIncomeToScenario,
     updateIncomeInScenario,
     deleteIncomeFromScenario,
+    syncWithBase,
   };
 }
