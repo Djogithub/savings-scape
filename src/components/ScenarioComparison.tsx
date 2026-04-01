@@ -233,6 +233,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
     { key: 'Revenus', label: 'Revenus' },
     { key: 'Charges', label: 'Charges' },
     { key: 'Solde', label: 'Solde' },
+    { key: 'Balance', label: 'Balance' },
   ];
 
   return (
