@@ -15,7 +15,7 @@ import { PatrimoineForm } from '@/components/PatrimoineForm';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 import { Button } from '@/components/ui/button';
-import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet, ChevronDown } from 'lucide-react';
+import { ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -132,10 +132,6 @@ const Index = () => {
                 <PieChart className="h-4 w-4" />
                 <span className="hidden sm:inline">Catégories</span>
               </TabsTrigger>
-              <TabsTrigger value="timeline" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Synthèse</span>
-              </TabsTrigger>
               <TabsTrigger value="projections" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                 <GitCompare className="h-4 w-4" />
                 <span className="hidden sm:inline">Scénarios</span>
@@ -146,72 +142,58 @@ const Index = () => {
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
               {activeTab === 'actual' && (
-                <div className="space-y-6">
+                <div className="space-y-8">
                   <SummaryCards charges={actualCharges} incomes={actualIncomes} />
 
-                  {/* Charges collapsible */}
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full group">
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-lg font-semibold tracking-tight">Charges</h2>
-                        <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualCharges.length}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
+                  {/* 3-column layout for Charges / Revenus / Patrimoine */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Charges */}
+                    <div className="glass-card p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base font-semibold tracking-tight">Charges</h2>
+                          <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualCharges.length}</span>
+                        </div>
                         <ChargeForm onSubmit={addCharge} />
-                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
                       </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4">
                       <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} />
-                    </CollapsibleContent>
-                  </Collapsible>
+                    </div>
 
-                  {/* Revenus collapsible */}
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full group">
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-lg font-semibold tracking-tight">Revenus</h2>
-                        <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualIncomes.length}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
+                    {/* Revenus */}
+                    <div className="glass-card p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base font-semibold tracking-tight">Revenus</h2>
+                          <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualIncomes.length}</span>
+                        </div>
                         <IncomeForm onSubmit={addIncome} />
-                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
                       </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4">
                       <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} />
-                    </CollapsibleContent>
-                  </Collapsible>
+                    </div>
 
-                  {/* Patrimoine collapsible */}
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full group">
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-lg font-semibold tracking-tight">Patrimoine</h2>
-                        <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{patrimoine.length}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
+                    {/* Patrimoine */}
+                    <div className="glass-card p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-base font-semibold tracking-tight">Patrimoine</h2>
+                          <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{patrimoine.length}</span>
+                        </div>
                         <PatrimoineForm onSubmit={addPatrimoine} />
-                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
                       </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-4">
                       <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} />
-                    </CollapsibleContent>
-                  </Collapsible>
+                    </div>
+                  </div>
+
+                  {/* Synthèse integrated below */}
+                  <div className="space-y-6">
+                    <TimelineChart charges={actualCharges} incomes={actualIncomes} />
+                  </div>
                 </div>
               )}
 
               {activeTab === 'categories' && (
                 <div className="space-y-6">
                   <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
-                </div>
-              )}
-
-              {activeTab === 'timeline' && (
-                <div className="space-y-6">
-                  <SummaryCards charges={actualCharges} incomes={actualIncomes} />
-                  <TimelineChart charges={actualCharges} incomes={actualIncomes} />
                 </div>
               )}
 
@@ -222,7 +204,7 @@ const Index = () => {
                     initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
                   >
                     <p className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">Scénarios</span> — Simulez différentes situations financières. Chaque scénario peut partir de vos données actuelles ou être créé de zéro.
+                      <span className="font-medium text-foreground">Scénarios</span> — Simulez différentes situations financières. Chaque scénario peut partir de vos données actuelles, d'un scénario existant, ou être créé de zéro.
                     </p>
                   </motion.div>
                   <ScenarioManager

@@ -33,11 +33,6 @@ function getIncomeTotalForMonth(incomes: Income[], year: number, month: number) 
   return incomes.reduce((s, i) => s + getIncomeAmountForMonth(i, year, month), 0);
 }
 
-// Current month totals
-function getTotal(items: { amount: number }[]) {
-  return items.reduce((s, i) => s + i.amount, 0);
-}
-
 const SOFT_COLORS = [
   'hsl(160, 45%, 52%)', 'hsl(220, 55%, 62%)', 'hsl(340, 50%, 62%)',
   'hsl(45, 70%, 58%)', 'hsl(280, 45%, 62%)', 'hsl(180, 40%, 52%)',
@@ -70,10 +65,12 @@ const cardVariants = {
 };
 
 type ProjectionFilter = 'solde-disponible' | 'patrimoine';
+type CategoryChartType = 'histogram' | 'radar';
 
 export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: ScenarioComparisonProps) {
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>(scenarios.map(s => s.id));
   const [projectionFilter, setProjectionFilter] = useState<ProjectionFilter>('solde-disponible');
+  const [categoryChartType, setCategoryChartType] = useState<CategoryChartType>('histogram');
   const [barOrder, setBarOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
@@ -168,7 +165,6 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
       if (projectionFilter === 'solde-disponible') {
         entry[label] = monthlySolde;
       } else {
-        // Patrimoine cumulative
         let cumul = 0;
         for (let m = 0; m <= monthOffset; m++) {
           const tm = (currentMonth + m) % 12;
@@ -185,7 +181,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
   });
 
   const categories = Object.keys(CATEGORY_LABELS) as ChargeCategory[];
-  const radarData = categories.map(cat => {
+  const categoryData = categories.map(cat => {
     const entry: Record<string, string | number> = { category: CATEGORY_LABELS[cat] };
     entry['Actuel'] = actualCharges.filter(c => c.category === cat).reduce((s, c) => s + getChargeAmountForMonth(c, currentYear, currentMonth), 0);
     filteredScenarios.forEach(s => {
@@ -208,6 +204,21 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
         <stop offset="0%" stopColor="hsl(220, 60%, 68%)" stopOpacity={1} />
         <stop offset="100%" stopColor="hsl(220, 45%, 50%)" stopOpacity={0.85} />
       </linearGradient>
+    </defs>
+  );
+
+  // Category histogram gradient defs
+  const categoryGradientDefs = (
+    <defs>
+      {allNames.map((name, i) => {
+        const hue = extractHue(allColors[i]);
+        return (
+          <linearGradient key={`cat-grad-${i}`} id={`cat-grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={`hsl(${hue}, 55%, 65%)`} stopOpacity={1} />
+            <stop offset="100%" stopColor={`hsl(${hue}, 40%, 45%)`} stopOpacity={0.85} />
+          </linearGradient>
+        );
+      })}
     </defs>
   );
 
@@ -445,24 +456,62 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
         </Card>
       </motion.div>
 
-      {/* Radar chart */}
-      {radarData.length > 0 && (
+      {/* Category chart with toggle */}
+      {categoryData.length > 0 && (
         <motion.div custom={6} initial="hidden" animate="visible" variants={cardVariants}>
           <Card className="glass-card">
-            <CardHeader className="pb-2"><CardTitle className="text-base">Répartition par catégorie</CardTitle></CardHeader>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="text-base">Répartition par catégorie</CardTitle>
+                <div className="flex gap-1 bg-muted/40 rounded-xl p-0.5">
+                  <button
+                    onClick={() => setCategoryChartType('histogram')}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                      categoryChartType === 'histogram' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Histogramme
+                  </button>
+                  <button
+                    onClick={() => setCategoryChartType('radar')}
+                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                      categoryChartType === 'radar' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Radar
+                  </button>
+                </div>
+              </div>
+            </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <RadarChart data={radarData} cx="50%" cy="50%">
-                  <PolarGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
-                  <PolarAngleAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
-                  <PolarRadiusAxis stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} />
-                  {allNames.map((name, i) => (
-                    <Radar key={name} name={name} dataKey={name} stroke={allColors[i]} strokeWidth={2} fill={allColors[i]} fillOpacity={0.08} dot={{ r: 3, fill: allColors[i] }} />
-                  ))}
-                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
-                  <Tooltip content={<CustomTooltip />} />
-                </RadarChart>
-              </ResponsiveContainer>
+              {categoryChartType === 'histogram' ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={categoryData} layout="vertical" barCategoryGap="18%">
+                    {categoryGradientDefs}
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                    <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${formatCompact(v)}€`} />
+                    <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} width={120} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
+                    {allNames.map((name, i) => (
+                      <Bar key={name} dataKey={name} fill={`url(#cat-grad-${i})`} radius={[0, 6, 6, 0]} />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <ResponsiveContainer width="100%" height={400}>
+                  <RadarChart data={categoryData} cx="50%" cy="50%">
+                    <PolarGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
+                    <PolarAngleAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />
+                    <PolarRadiusAxis stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} />
+                    {allNames.map((name, i) => (
+                      <Radar key={name} name={name} dataKey={name} stroke={allColors[i]} strokeWidth={2} fill={allColors[i]} fillOpacity={0.08} dot={{ r: 3, fill: allColors[i] }} />
+                    ))}
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
+                    <Tooltip content={<CustomTooltip />} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
         </motion.div>
