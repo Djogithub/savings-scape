@@ -166,11 +166,13 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
   const monthlyProjectionFiltered = Array.from({ length: 12 }, (_, month) => {
     const entry: Record<string, string | number> = { name: `M${month + 1}` };
     const addEntry = (label: string, incomes: number, charges: number) => {
-      if (projectionFilter === 'all' || projectionFilter === 'Solde') {
-        // In 'all' mode we show cumulative balance as before
-      }
       if (projectionFilter === 'Revenus') entry[label] = incomes * (month + 1);
       else if (projectionFilter === 'Charges') entry[label] = charges * (month + 1);
+      else if (projectionFilter === 'Balance') {
+        // Running balance: cumulative savings (positive solde accumulates)
+        const monthlySolde = incomes - charges;
+        entry[label] = monthlySolde > 0 ? monthlySolde * (month + 1) : monthlySolde * (month + 1);
+      }
       else entry[label] = (incomes - charges) * (month + 1); // Solde or all
     };
     addEntry('Actuel', actualTotalIncomes, actualTotalCharges);
