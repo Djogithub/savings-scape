@@ -149,38 +149,53 @@ const Index = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Charges */}
                     <div className="glass-card p-5 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base font-semibold tracking-tight">Charges</h2>
-                          <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualCharges.length}</span>
+                      <Collapsible>
+                        <div className="flex items-center justify-between">
+                          <CollapsibleTrigger className="flex items-center gap-2 group cursor-pointer">
+                            <h2 className="text-base font-semibold tracking-tight">Charges</h2>
+                            <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualCharges.length}</span>
+                            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                          </CollapsibleTrigger>
+                          <ChargeForm onSubmit={addCharge} />
                         </div>
-                        <ChargeForm onSubmit={addCharge} />
-                      </div>
-                      <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} />
+                        <CollapsibleContent className="pt-4">
+                          <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} />
+                        </CollapsibleContent>
+                      </Collapsible>
                     </div>
 
                     {/* Revenus */}
                     <div className="glass-card p-5 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base font-semibold tracking-tight">Revenus</h2>
-                          <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualIncomes.length}</span>
+                      <Collapsible>
+                        <div className="flex items-center justify-between">
+                          <CollapsibleTrigger className="flex items-center gap-2 group cursor-pointer">
+                            <h2 className="text-base font-semibold tracking-tight">Revenus</h2>
+                            <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualIncomes.length}</span>
+                            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                          </CollapsibleTrigger>
+                          <IncomeForm onSubmit={addIncome} />
                         </div>
-                        <IncomeForm onSubmit={addIncome} />
-                      </div>
-                      <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} />
+                        <CollapsibleContent className="pt-4">
+                          <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} />
+                        </CollapsibleContent>
+                      </Collapsible>
                     </div>
 
                     {/* Patrimoine */}
                     <div className="glass-card p-5 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base font-semibold tracking-tight">Patrimoine</h2>
-                          <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{patrimoine.length}</span>
+                      <Collapsible>
+                        <div className="flex items-center justify-between">
+                          <CollapsibleTrigger className="flex items-center gap-2 group cursor-pointer">
+                            <h2 className="text-base font-semibold tracking-tight">Patrimoine</h2>
+                            <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{patrimoine.length}</span>
+                            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                          </CollapsibleTrigger>
+                          <PatrimoineForm onSubmit={addPatrimoine} />
                         </div>
-                        <PatrimoineForm onSubmit={addPatrimoine} />
-                      </div>
-                      <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} />
+                        <CollapsibleContent className="pt-4">
+                          <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} />
+                        </CollapsibleContent>
+                      </Collapsible>
                     </div>
                   </div>
 
