@@ -1,7 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useFinanceData, exportData, importData } from '@/hooks/useFinanceData';
 import { useScenarios } from '@/hooks/useScenarios';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SummaryCards } from '@/components/SummaryCards';
 import { ChargeList } from '@/components/ChargeList';
 import { IncomeList } from '@/components/IncomeList';
@@ -15,6 +15,23 @@ import { Button } from '@/components/ui/button';
 import { BarChart3, ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Scale, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const tabContentVariants = {
+  hidden: { opacity: 0, y: 16, filter: 'blur(4px)' },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: 'blur(0px)',
+    transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+  },
+  exit: {
+    opacity: 0,
+    y: -8,
+    filter: 'blur(4px)',
+    transition: { duration: 0.2 },
+  },
+};
 
 const Index = () => {
   const {
@@ -35,6 +52,7 @@ const Index = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
+  const [activeTab, setActiveTab] = useState('actual');
 
   const handleExport = () => {
     exportData(data);
@@ -60,9 +78,13 @@ const Index = () => {
       <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <motion.div
+              className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: 'spring', stiffness: 400 }}
+            >
               <Wallet className="h-5 w-5 text-primary" />
-            </div>
+            </motion.div>
             <div>
               <h1 className="text-xl font-bold tracking-tight">MonBudget</h1>
               <p className="text-[11px] text-muted-foreground leading-none">Gestion de comptes personnels</p>
@@ -79,21 +101,23 @@ const Index = () => {
             </Button>
             <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
             <div className="w-px h-5 bg-border mx-1" />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground"
-              onClick={toggleTheme}
-              title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}
-            >
-              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-            </Button>
+            <motion.div whileTap={{ scale: 0.9, rotate: 180 }} transition={{ duration: 0.3 }}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground"
+                onClick={toggleTheme}
+                title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}
+              >
+                {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              </Button>
+            </motion.div>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-6 py-8 space-y-8 max-w-7xl">
-        <Tabs defaultValue="actual" className="space-y-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
           {/* Premium pill navigation */}
           <div className="flex justify-center">
             <TabsList className="bg-muted/60 backdrop-blur-sm p-1 rounded-2xl border border-border/40 gap-0.5 h-auto">
@@ -120,80 +144,100 @@ const Index = () => {
             </TabsList>
           </div>
 
-          {/* Actual Tab */}
-          <TabsContent value="actual" className="space-y-6">
-            <SummaryCards charges={actualCharges} incomes={actualIncomes} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold tracking-tight">Charges</h2>
-                  <ChargeForm onSubmit={addCharge} />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={tabContentVariants}
+            >
+              {activeTab === 'actual' && (
+                <div className="space-y-6">
+                  <SummaryCards charges={actualCharges} incomes={actualIncomes} />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold tracking-tight">Charges</h2>
+                        <ChargeForm onSubmit={addCharge} />
+                      </div>
+                      <ChargeList
+                        charges={actualCharges}
+                        onDelete={deleteCharge}
+                        onUpdate={updateCharge}
+                        onAdd={addCharge}
+                      />
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold tracking-tight">Revenus</h2>
+                        <IncomeForm onSubmit={addIncome} />
+                      </div>
+                      <IncomeList
+                        incomes={actualIncomes}
+                        onDelete={deleteIncome}
+                        onUpdate={updateIncome}
+                        onAdd={addIncome}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <ChargeList
-                  charges={actualCharges}
-                  onDelete={deleteCharge}
-                  onUpdate={updateCharge}
-                  onAdd={addCharge}
-                />
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold tracking-tight">Revenus</h2>
-                  <IncomeForm onSubmit={addIncome} />
+              )}
+
+              {activeTab === 'categories' && (
+                <div className="space-y-6">
+                  <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
                 </div>
-                <IncomeList
-                  incomes={actualIncomes}
-                  onDelete={deleteIncome}
-                  onUpdate={updateIncome}
-                  onAdd={addIncome}
-                />
-              </div>
-            </div>
-          </TabsContent>
+              )}
 
-          {/* Categories Tab */}
-          <TabsContent value="categories" className="space-y-6">
-            <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
-          </TabsContent>
+              {activeTab === 'timeline' && (
+                <div className="space-y-6">
+                  <SummaryCards charges={actualCharges} incomes={actualIncomes} />
+                  <TimelineChart charges={actualCharges} incomes={actualIncomes} />
+                </div>
+              )}
 
-          {/* Timeline Tab */}
-          <TabsContent value="timeline" className="space-y-6">
-            <SummaryCards charges={actualCharges} incomes={actualIncomes} />
-            <TimelineChart charges={actualCharges} incomes={actualIncomes} />
-          </TabsContent>
+              {activeTab === 'projections' && (
+                <div className="space-y-6">
+                  <motion.div
+                    className="glass-card p-4 border-l-4 border-l-warning/60"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">Scénarios</span> — Simulez différentes situations financières. Chaque scénario peut partir de vos données actuelles ou être créé de zéro.
+                    </p>
+                  </motion.div>
+                  <ScenarioManager
+                    scenarios={scenarios}
+                    actualCharges={actualCharges}
+                    actualIncomes={actualIncomes}
+                    onCreateScenario={createScenario}
+                    onDeleteScenario={deleteScenario}
+                    onRenameScenario={renameScenario}
+                    onDuplicateScenario={duplicateScenario}
+                    onAddCharge={addChargeToScenario}
+                    onUpdateCharge={updateChargeInScenario}
+                    onDeleteCharge={deleteChargeFromScenario}
+                    onAddIncome={addIncomeToScenario}
+                    onUpdateIncome={updateIncomeInScenario}
+                    onDeleteIncome={deleteIncomeFromScenario}
+                  />
+                </div>
+              )}
 
-          {/* Scenarios Tab */}
-          <TabsContent value="projections" className="space-y-6">
-            <div className="glass-card p-4 border-l-4 border-l-warning/60">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Scénarios</span> — Simulez différentes situations financières. Chaque scénario peut partir de vos données actuelles ou être créé de zéro.
-              </p>
-            </div>
-            <ScenarioManager
-              scenarios={scenarios}
-              actualCharges={actualCharges}
-              actualIncomes={actualIncomes}
-              onCreateScenario={createScenario}
-              onDeleteScenario={deleteScenario}
-              onRenameScenario={renameScenario}
-              onDuplicateScenario={duplicateScenario}
-              onAddCharge={addChargeToScenario}
-              onUpdateCharge={updateChargeInScenario}
-              onDeleteCharge={deleteChargeFromScenario}
-              onAddIncome={addIncomeToScenario}
-              onUpdateIncome={updateIncomeInScenario}
-              onDeleteIncome={deleteIncomeFromScenario}
-            />
-          </TabsContent>
-
-          {/* Comparison Tab */}
-          <TabsContent value="comparison" className="space-y-6">
-            <ScenarioComparison
-              scenarios={scenarios}
-              actualCharges={actualCharges}
-              actualIncomes={actualIncomes}
-            />
-          </TabsContent>
+              {activeTab === 'comparison' && (
+                <div className="space-y-6">
+                  <ScenarioComparison
+                    scenarios={scenarios}
+                    actualCharges={actualCharges}
+                    actualIncomes={actualIncomes}
+                  />
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </Tabs>
       </main>
     </div>
