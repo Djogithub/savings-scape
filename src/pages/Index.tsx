@@ -137,10 +137,6 @@ const Index = () => {
                 <GitCompare className="h-4 w-4" />
                 <span className="hidden sm:inline">Scénarios</span>
               </TabsTrigger>
-              <TabsTrigger value="comparison" className="gap-2 tab-pill data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                <Scale className="h-4 w-4" />
-                <span className="hidden sm:inline">Comparer</span>
-              </TabsTrigger>
             </TabsList>
           </div>
 
