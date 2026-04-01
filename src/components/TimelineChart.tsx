@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Charge, Income, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, Line, ComposedChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, Line, ComposedChart, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -60,7 +60,9 @@ function useChartColors() {
     tooltipBorder: isDark ? 'hsl(228 12% 20%)' : 'hsl(220 13% 90%)',
     tooltipText: isDark ? 'hsl(220 20% 93%)' : 'hsl(224 20% 12%)',
     income: 'hsl(160 60% 42%)',
+    incomeLight: 'hsl(160 60% 42% / 0.35)',
     expense: 'hsl(0 65% 55%)',
+    expenseLight: 'hsl(0 65% 55% / 0.35)',
     balance: 'hsl(220 85% 58%)',
     projected: 'hsl(35 90% 52%)',
   };
@@ -72,6 +74,7 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
   const [year, setYear] = useState(currentDate.getFullYear());
   const [month, setMonth] = useState(currentDate.getMonth());
   const [weekOffset, setWeekOffset] = useState(0);
+  const [hoveredBar, setHoveredBar] = useState<string | null>(null);
 
   const currentMonday = useMemo(() => {
     const d = new Date(year, month, 1);
@@ -178,6 +181,10 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
     return w ? `Semaine du ${w.label}` : `${MONTHS_FR[month]} ${year}`;
   };
 
+  const isBarHovered = (key: string) => hoveredBar === key;
+  const revenusOpacity = hoveredBar === null ? 0.35 : (hoveredBar === 'revenus' ? 1 : 0.2);
+  const depensesOpacity = hoveredBar === null ? 0.35 : (hoveredBar === 'depenses' ? 1 : 0.2);
+
   return (
     <div className="space-y-4">
       <div className="glass-card p-4">
@@ -205,7 +212,14 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
       </div>
       <div className="glass-card p-6 premium-shadow">
         <ResponsiveContainer width="100%" height={350}>
-          <ComposedChart data={data}>
+          <ComposedChart
+            data={data}
+            onMouseMove={(state: any) => {
+              if (state?.activeTooltipIndex !== undefined && state?.activePayload) {
+                // no-op, handled by bar hover
+              }
+            }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
             <XAxis dataKey="name" stroke={colors.axis} fontSize={12} tickLine={false} axisLine={false} />
             <YAxis stroke={colors.axis} fontSize={12} tickFormatter={v => `${(v / 1000).toFixed(v >= 1000 ? 0 : 1)}k`} tickLine={false} axisLine={false} />
@@ -213,15 +227,33 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
               contentStyle={{ backgroundColor: colors.tooltipBg, border: `1px solid ${colors.tooltipBorder}`, borderRadius: '12px', color: colors.tooltipText, boxShadow: '0 8px 32px -8px rgba(0,0,0,0.15)' }}
               formatter={(value: number, name: string) => [formatCurrency(value), name]}
             />
-            <Legend />
-            <Bar dataKey="revenus" name="Revenus" fill={colors.income} radius={[6, 6, 0, 0]} />
-            <Bar dataKey="depenses" name="Dépenses" fill={colors.expense} radius={[6, 6, 0, 0]} />
-            <Line type="monotone" dataKey="solde" name="Solde" stroke={colors.balance} strokeWidth={2.5} dot={{ fill: colors.balance, r: 4, strokeWidth: 0 }} />
+            <Legend
+              onMouseEnter={(e: any) => setHoveredBar(e.dataKey)}
+              onMouseLeave={() => setHoveredBar(null)}
+            />
+            <Bar
+              dataKey="revenus" name="Revenus" fill={colors.income}
+              radius={[6, 6, 0, 0]}
+              fillOpacity={revenusOpacity}
+              onMouseEnter={() => setHoveredBar('revenus')}
+              onMouseLeave={() => setHoveredBar(null)}
+              style={{ transition: 'fill-opacity 0.3s ease' }}
+            />
+            <Bar
+              dataKey="depenses" name="Dépenses" fill={colors.expense}
+              radius={[6, 6, 0, 0]}
+              fillOpacity={depensesOpacity}
+              onMouseEnter={() => setHoveredBar('depenses')}
+              onMouseLeave={() => setHoveredBar(null)}
+              style={{ transition: 'fill-opacity 0.3s ease' }}
+            />
+            <Line type="monotone" dataKey="solde" name="Solde" stroke={colors.balance} strokeWidth={3} dot={{ fill: colors.balance, r: 5, strokeWidth: 2, stroke: 'hsl(var(--card))' }} activeDot={{ r: 7, strokeWidth: 3 }} />
             {showProjections && (
               <Line type="monotone" dataKey="soldeProj" name="Solde projeté" stroke={colors.projected} strokeWidth={2} strokeDasharray="5 5" dot={{ fill: colors.projected }} />
             )}
           </ComposedChart>
         </ResponsiveContainer>
+        <p className="text-[11px] text-muted-foreground text-center mt-2">Survolez les barres ou la légende pour mettre en évidence revenus ou dépenses</p>
       </div>
     </div>
   );
