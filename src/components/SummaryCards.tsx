@@ -1,4 +1,4 @@
-import { Charge, Income } from '@/types/finance';
+import { Charge, Income, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal } from '@/types/finance';
 import { TrendingDown, TrendingUp, Wallet, PiggyBank } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -15,20 +15,17 @@ function formatCurrency(n: number) {
 const cardVariants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
+    opacity: 1, y: 0, scale: 1,
     transition: {
-      delay: i * 0.08,
-      duration: 0.4,
+      delay: i * 0.08, duration: 0.4,
       ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
     },
   }),
 };
 
 export function SummaryCards({ charges, incomes, compact = false }: SummaryCardsProps) {
-  const totalCharges = charges.reduce((s, c) => s + c.amount, 0);
-  const totalIncomes = incomes.reduce((s, i) => s + i.amount, 0);
+  const totalCharges = getCurrentMonthChargesTotal(charges);
+  const totalIncomes = getCurrentMonthIncomesTotal(incomes);
   const solde = totalIncomes - totalCharges;
   const fixedCharges = charges.filter(c => c.type === 'fixed').reduce((s, c) => s + c.amount, 0);
   const savingsRate = totalIncomes > 0 ? ((solde / totalIncomes) * 100) : 0;
@@ -76,10 +73,7 @@ export function SummaryCards({ charges, incomes, compact = false }: SummaryCards
         <motion.div
           key={card.label}
           className={`glass-card premium-shadow hover:shadow-md transition-shadow duration-300 ${compact ? 'p-3' : 'p-5'}`}
-          custom={i}
-          initial="hidden"
-          animate="visible"
-          variants={cardVariants}
+          custom={i} initial="hidden" animate="visible" variants={cardVariants}
           whileHover={{ y: -2, transition: { duration: 0.2 } }}
         >
           <div className={`flex items-start justify-between ${compact ? 'mb-2' : 'mb-4'}`}>

@@ -1,37 +1,40 @@
 import { useState, useCallback, useEffect } from 'react';
-import { FinanceData, Charge, Income } from '@/types/finance';
+import { FinanceData, Charge, Income, PatrimoineItem } from '@/types/finance';
 
 const STORAGE_KEY = 'finance-app-data';
 const BACKUP_KEY = 'finance-app-backup';
-const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 2;
 
 function loadData(): FinanceData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && parsed.version === CURRENT_VERSION) {
+      if (parsed) {
+        // Migration: add patrimoine array if missing
+        if (!Array.isArray(parsed.patrimoine)) parsed.patrimoine = [];
+        parsed.version = CURRENT_VERSION;
         return parsed;
       }
     }
-    // Try backup
     const backup = localStorage.getItem(BACKUP_KEY);
     if (backup) {
       const parsed = JSON.parse(backup);
-      if (parsed && parsed.version === CURRENT_VERSION) {
+      if (parsed) {
+        if (!Array.isArray(parsed.patrimoine)) parsed.patrimoine = [];
+        parsed.version = CURRENT_VERSION;
         return parsed;
       }
     }
   } catch (e) {
     console.error('Failed to load finance data:', e);
   }
-  return { charges: [], incomes: [], version: CURRENT_VERSION };
+  return { charges: [], incomes: [], patrimoine: [], version: CURRENT_VERSION };
 }
 
 function saveData(data: FinanceData) {
   try {
     const json = JSON.stringify(data);
-    // Save to both main and backup keys for redundancy
     localStorage.setItem(STORAGE_KEY, json);
     localStorage.setItem(BACKUP_KEY, json);
   } catch (e) {
@@ -57,6 +60,7 @@ export function importData(file: File): Promise<FinanceData> {
       try {
         const parsed = JSON.parse(reader.result as string);
         if (parsed && Array.isArray(parsed.charges) && Array.isArray(parsed.incomes)) {
+          if (!Array.isArray(parsed.patrimoine)) parsed.patrimoine = [];
           resolve({ ...parsed, version: CURRENT_VERSION });
         } else {
           reject(new Error('Format de fichier invalide'));
@@ -119,6 +123,28 @@ export function useFinanceData() {
     }));
   }, []);
 
+  // Patrimoine CRUD
+  const addPatrimoine = useCallback((item: Omit<PatrimoineItem, 'id'>) => {
+    setData(prev => ({
+      ...prev,
+      patrimoine: [...prev.patrimoine, { ...item, id: crypto.randomUUID() }],
+    }));
+  }, []);
+
+  const updatePatrimoine = useCallback((id: string, updates: Partial<PatrimoineItem>) => {
+    setData(prev => ({
+      ...prev,
+      patrimoine: prev.patrimoine.map(p => p.id === id ? { ...p, ...updates } : p),
+    }));
+  }, []);
+
+  const deletePatrimoine = useCallback((id: string) => {
+    setData(prev => ({
+      ...prev,
+      patrimoine: prev.patrimoine.filter(p => p.id !== id),
+    }));
+  }, []);
+
   const loadFromImport = useCallback((imported: FinanceData) => {
     setData(imported);
   }, []);
@@ -132,6 +158,7 @@ export function useFinanceData() {
     data,
     charges: data.charges,
     incomes: data.incomes,
+    patrimoine: data.patrimoine,
     actualCharges,
     projectedCharges,
     actualIncomes,
@@ -142,6 +169,9 @@ export function useFinanceData() {
     addIncome,
     updateIncome,
     deleteIncome,
+    addPatrimoine,
+    updatePatrimoine,
+    deletePatrimoine,
     loadFromImport,
   };
 }

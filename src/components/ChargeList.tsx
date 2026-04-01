@@ -1,4 +1,4 @@
-import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS } from '@/types/finance';
+import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SEASON_LABELS, Season } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Trash2, Edit2, Calendar, CreditCard } from 'lucide-react';
 import { ChargeForm } from './ChargeForm';
@@ -40,8 +40,7 @@ function getCategoryColor(cat: string): string {
 const itemVariants = {
   hidden: { opacity: 0, x: -12 },
   visible: (i: number) => ({
-    opacity: 1,
-    x: 0,
+    opacity: 1, x: 0,
     transition: { delay: i * 0.04, duration: 0.3, ease: 'easeOut' as const },
   }),
   exit: { opacity: 0, x: 12, height: 0, marginBottom: 0, transition: { duration: 0.2 } },
@@ -59,11 +58,7 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
       </div>
 
       {charges.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="glass-card text-center py-12 text-muted-foreground text-sm"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card text-center py-12 text-muted-foreground text-sm">
           Aucune charge enregistrée. Ajoutez votre première charge.
         </motion.div>
       )}
@@ -74,12 +69,7 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
             <motion.div
               key={charge.id}
               className="glass-card p-4 flex items-center justify-between gap-4 group hover:shadow-md transition-shadow duration-200"
-              custom={i}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={itemVariants}
-              layout
+              custom={i} initial="hidden" animate="visible" exit="exit" variants={itemVariants} layout
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -99,6 +89,15 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                       {charge.endDate && ` → ${new Date(charge.endDate).toLocaleDateString('fr-FR')}`}
                     </span>
                   )}
+                  {charge.type === 'seasonal' && charge.seasonalAmounts && (
+                    <span className="flex items-center gap-1 flex-wrap">
+                      {(Object.entries(charge.seasonalAmounts) as [Season, number][]).map(([season, amt]) => (
+                        <span key={season} className="inline-flex items-center gap-0.5 bg-muted/60 px-1.5 py-0.5 rounded text-[10px]">
+                          {SEASON_LABELS[season].split(' ')[0]}: {formatCurrency(amt)}
+                        </span>
+                      ))}
+                    </span>
+                  )}
                   {charge.totalAmount && (() => {
                     let remaining = charge.totalAmount - (charge.paidAmount ?? 0);
                     if (charge.startDate && charge.amount > 0) {
@@ -115,15 +114,13 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                     );
                   })()}
                   {charge.interestRate != null && (
-                    <span className="text-warning font-medium">
-                      Taux: {charge.interestRate}%
-                    </span>
+                    <span className="text-warning font-medium">Taux: {charge.interestRate}%</span>
                   )}
                 </div>
               </div>
               <div className="text-right shrink-0">
                 <div className="font-bold text-base tabular-nums">{formatCurrency(charge.amount)}</div>
-                <div className="text-[11px] text-muted-foreground">/mois</div>
+                <div className="text-[11px] text-muted-foreground">{charge.type === 'seasonal' ? 'moy./mois' : '/mois'}</div>
               </div>
               <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 <ChargeForm

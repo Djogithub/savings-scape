@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Charge, Income } from '@/types/finance';
+import { Charge, Income, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, Line, ComposedChart } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -24,33 +24,6 @@ const MONTHS_FR = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juill
 const MONTHS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
-function isActiveInMonth(item: { startDate?: string; endDate?: string }, year: number, month: number): boolean {
-  if (!item.startDate) return true;
-  const start = new Date(item.startDate);
-  const startMonth = start.getFullYear() * 12 + start.getMonth();
-  const targetMonth = year * 12 + month;
-  if (targetMonth < startMonth) return false;
-  if (item.endDate) {
-    const end = new Date(item.endDate);
-    const endMonth = end.getFullYear() * 12 + end.getMonth();
-    if (targetMonth > endMonth) return false;
-  }
-  return true;
-}
-
-function isActiveOnDate(item: { startDate?: string; endDate?: string }, date: Date): boolean {
-  if (!item.startDate) return true;
-  const start = new Date(item.startDate);
-  start.setHours(0, 0, 0, 0);
-  if (date < start) return false;
-  if (item.endDate) {
-    const end = new Date(item.endDate);
-    end.setHours(23, 59, 59, 999);
-    if (date > end) return false;
-  }
-  return true;
-}
-
 function getWeeksOfMonth(year: number, month: number) {
   const weeks: { start: Date; end: Date; label: string }[] = [];
   const firstDay = new Date(year, month, 1);
@@ -63,10 +36,7 @@ function getWeeksOfMonth(year: number, month: number) {
     const start = new Date(current);
     const end = new Date(current);
     end.setDate(end.getDate() + 6);
-    weeks.push({
-      start, end,
-      label: `${start.getDate()}/${start.getMonth() + 1} - ${end.getDate()}/${end.getMonth() + 1}`,
-    });
+    weeks.push({ start, end, label: `${start.getDate()}/${start.getMonth() + 1} - ${end.getDate()}/${end.getMonth() + 1}` });
     current.setDate(current.getDate() + 7);
     if (weeks.length >= 6) break;
   }
@@ -115,14 +85,12 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
   const data = useMemo(() => {
     if (viewMode === 'year') {
       return Array.from({ length: 12 }, (_, m) => {
-        const activeCharges = charges.filter(c => isActiveInMonth(c, year, m));
-        const activeIncomes = incomes.filter(i => isActiveInMonth(i, year, m));
-        const totalCharges = activeCharges.reduce((s, c) => s + c.amount, 0);
-        const totalIncomes = activeIncomes.reduce((s, i) => s + i.amount, 0);
+        const totalCharges = charges.reduce((s, c) => s + getChargeAmountForMonth(c, year, m), 0);
+        const totalIncomes = incomes.reduce((s, i) => s + getIncomeAmountForMonth(i, year, m), 0);
         let projC = 0, projI = 0;
         if (showProjections) {
-          projC = projectedCharges.filter(c => isActiveInMonth(c, year, m)).reduce((s, c) => s + c.amount, 0);
-          projI = projectedIncomes.filter(i => isActiveInMonth(i, year, m)).reduce((s, i) => s + i.amount, 0);
+          projC = projectedCharges.reduce((s, c) => s + getChargeAmountForMonth(c, year, m), 0);
+          projI = projectedIncomes.reduce((s, i) => s + getIncomeAmountForMonth(i, year, m), 0);
         }
         return {
           name: MONTHS_SHORT[m],
@@ -134,14 +102,12 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
     if (viewMode === 'month') {
       const weeks = getWeeksOfMonth(year, month);
       return weeks.map((week, idx) => {
-        const activeCharges = charges.filter(c => isActiveInMonth(c, year, month));
-        const activeIncomes = incomes.filter(i => isActiveInMonth(i, year, month));
-        const totalCharges = activeCharges.reduce((s, c) => s + c.amount, 0) / weeks.length;
-        const totalIncomes = activeIncomes.reduce((s, i) => s + i.amount, 0) / weeks.length;
+        const totalCharges = charges.reduce((s, c) => s + getChargeAmountForMonth(c, year, month), 0) / weeks.length;
+        const totalIncomes = incomes.reduce((s, i) => s + getIncomeAmountForMonth(i, year, month), 0) / weeks.length;
         let projC = 0, projI = 0;
         if (showProjections) {
-          projC = projectedCharges.filter(c => isActiveInMonth(c, year, month)).reduce((s, c) => s + c.amount, 0) / weeks.length;
-          projI = projectedIncomes.filter(i => isActiveInMonth(i, year, month)).reduce((s, i) => s + i.amount, 0) / weeks.length;
+          projC = projectedCharges.reduce((s, c) => s + getChargeAmountForMonth(c, year, month), 0) / weeks.length;
+          projI = projectedIncomes.reduce((s, i) => s + getIncomeAmountForMonth(i, year, month), 0) / weeks.length;
         }
         return {
           name: `S${idx + 1}`, fullLabel: week.label,
@@ -152,14 +118,14 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
     }
     const days = getDaysOfWeek(currentMonday);
     return days.map(day => {
-      const activeCharges = charges.filter(c => isActiveOnDate(c, day));
-      const activeIncomes = incomes.filter(i => isActiveOnDate(i, day));
-      const totalCharges = activeCharges.reduce((s, c) => s + c.amount / 30, 0);
-      const totalIncomes = activeIncomes.reduce((s, i) => s + i.amount / 30, 0);
+      const m = day.getMonth();
+      const y = day.getFullYear();
+      const totalCharges = charges.reduce((s, c) => s + getChargeAmountForMonth(c, y, m) / 30, 0);
+      const totalIncomes = incomes.reduce((s, i) => s + getIncomeAmountForMonth(i, y, m) / 30, 0);
       let projC = 0, projI = 0;
       if (showProjections) {
-        projC = projectedCharges.filter(c => isActiveOnDate(c, day)).reduce((s, c) => s + c.amount / 30, 0);
-        projI = projectedIncomes.filter(i => isActiveOnDate(i, day)).reduce((s, i) => s + i.amount / 30, 0);
+        projC = projectedCharges.reduce((s, c) => s + getChargeAmountForMonth(c, y, m) / 30, 0);
+        projI = projectedIncomes.reduce((s, i) => s + getIncomeAmountForMonth(i, y, m) / 30, 0);
       }
       return {
         name: `${DAYS_FR[day.getDay() === 0 ? 6 : day.getDay() - 1]} ${day.getDate()}`,
@@ -214,7 +180,6 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
 
   return (
     <div className="space-y-4">
-      {/* Controls */}
       <div className="glass-card p-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <ToggleGroup type="single" value={viewMode} onValueChange={(v) => { if (v) setViewMode(v as ViewMode); }} className="bg-muted/60 rounded-xl p-1 border border-border/40">
@@ -222,7 +187,6 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
             <ToggleGroupItem value="month" className="text-xs px-3 rounded-lg data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm">Mois</ToggleGroupItem>
             <ToggleGroupItem value="year" className="text-xs px-3 rounded-lg data-[state=on]:bg-card data-[state=on]:text-foreground data-[state=on]:shadow-sm">Année</ToggleGroupItem>
           </ToggleGroup>
-
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={navigatePrev}><ChevronLeft className="h-4 w-4" /></Button>
             <span className="text-sm font-semibold min-w-[180px] text-center">{getTitle()}</span>
@@ -231,7 +195,6 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
               <Calendar className="h-4 w-4" />Aujourd'hui
             </Button>
           </div>
-
           {viewMode !== 'year' && (
             <Select value={month.toString()} onValueChange={(v) => { setMonth(parseInt(v)); setWeekOffset(0); }}>
               <SelectTrigger className="w-[140px] h-8 text-xs rounded-xl"><SelectValue /></SelectTrigger>
@@ -240,8 +203,6 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
           )}
         </div>
       </div>
-
-      {/* Chart */}
       <div className="glass-card p-6 premium-shadow">
         <ResponsiveContainer width="100%" height={350}>
           <ComposedChart data={data}>
