@@ -66,13 +66,13 @@ const cardVariants = {
   }),
 };
 
-type ProjectionFilter = 'all' | 'Revenus' | 'Charges' | 'Solde' | 'Balance';
+type ProjectionFilter = 'solde-disponible' | 'patrimoine';
 
 export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: ScenarioComparisonProps) {
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>(
     scenarios.map(s => s.id)
   );
-  const [projectionFilter, setProjectionFilter] = useState<ProjectionFilter>('all');
+  const [projectionFilter, setProjectionFilter] = useState<ProjectionFilter>('solde-disponible');
 
   // Drag-and-drop state for bar chart ordering
   const [barOrder, setBarOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
@@ -166,14 +166,14 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
   const monthlyProjectionFiltered = Array.from({ length: 12 }, (_, month) => {
     const entry: Record<string, string | number> = { name: `M${month + 1}` };
     const addEntry = (label: string, incomes: number, charges: number) => {
-      if (projectionFilter === 'Revenus') entry[label] = incomes * (month + 1);
-      else if (projectionFilter === 'Charges') entry[label] = charges * (month + 1);
-      else if (projectionFilter === 'Balance') {
-        // Running balance: cumulative savings (positive solde accumulates)
-        const monthlySolde = incomes - charges;
-        entry[label] = monthlySolde > 0 ? monthlySolde * (month + 1) : monthlySolde * (month + 1);
+      const monthlySolde = incomes - charges;
+      if (projectionFilter === 'solde-disponible') {
+        // Monthly available balance (surplus/deficit each month)
+        entry[label] = monthlySolde;
+      } else {
+        // Patrimoine: cumulative wealth over time
+        entry[label] = monthlySolde * (month + 1);
       }
-      else entry[label] = (incomes - charges) * (month + 1); // Solde or all
     };
     addEntry('Actuel', actualTotalIncomes, actualTotalCharges);
     filteredScenarios.forEach(s => {
@@ -229,11 +229,8 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
   };
 
   const projectionFilterOptions: { key: ProjectionFilter; label: string }[] = [
-    { key: 'all', label: 'Tout' },
-    { key: 'Revenus', label: 'Revenus' },
-    { key: 'Charges', label: 'Charges' },
-    { key: 'Solde', label: 'Solde' },
-    { key: 'Balance', label: 'Balance' },
+    { key: 'solde-disponible', label: 'Solde disponible' },
+    { key: 'patrimoine', label: 'Patrimoine' },
   ];
 
   return (
