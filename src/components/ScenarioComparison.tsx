@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Scenario, Charge, Income, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
+import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
