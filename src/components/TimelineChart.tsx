@@ -233,7 +233,8 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
             />
             <Bar
               dataKey="revenus" name="Revenus" fill={colors.income}
-              radius={[6, 6, 0, 0]}
+              radius={[4, 4, 0, 0]}
+              barSize={14}
               fillOpacity={revenusOpacity}
               onMouseEnter={() => setHoveredBar('revenus')}
               onMouseLeave={() => setHoveredBar(null)}
@@ -241,7 +242,8 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
             />
             <Bar
               dataKey="depenses" name="Dépenses" fill={colors.expense}
-              radius={[6, 6, 0, 0]}
+              radius={[4, 4, 0, 0]}
+              barSize={14}
               fillOpacity={depensesOpacity}
               onMouseEnter={() => setHoveredBar('depenses')}
               onMouseLeave={() => setHoveredBar(null)}

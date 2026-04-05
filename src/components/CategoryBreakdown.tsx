@@ -1,4 +1,5 @@
 import { Charge, Income, CATEGORY_LABELS, ChargeCategory, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth } from '@/types/finance';
+import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { Badge } from '@/components/ui/badge';
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -29,6 +30,14 @@ const CATEGORY_CHART_COLORS: Record<string, string> = {
   'autre': 'hsl(220, 15%, 55%)',
 };
 
+/** Generate a stable color for custom categories based on the key string */
+function generateColorForCategory(key: string): string {
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) hash = key.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = ((hash % 360) + 360) % 360;
+  return `hsl(${hue}, 50%, 55%)`;
+}
+
 const INCOME_CHART_COLORS = {
   recurring: 'hsl(160, 50%, 50%)',
   oneTime: 'hsl(200, 50%, 55%)',
@@ -51,8 +60,10 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
 
+  const allLabels = useMemo(() => ({ ...CATEGORY_LABELS, ...getCustomCategories() }), [charges]);
+
   const chargeData = useMemo(() => {
-    const map = new Map<ChargeCategory, number>();
+    const map = new Map<string, number>();
     for (const c of charges) {
       const amt = getChargeAmountForMonth(c, currentYear, currentMonth);
       if (amt > 0) {
@@ -63,13 +74,13 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
     return Array.from(map.entries())
       .sort((a, b) => b[1] - a[1])
       .map(([cat, value]) => ({
-        name: CATEGORY_LABELS[cat],
+        name: allLabels[cat] ?? cat,
         value,
         pct: total > 0 ? (value / total) * 100 : 0,
-        color: CATEGORY_CHART_COLORS[cat] ?? CATEGORY_CHART_COLORS['autre'],
+        color: CATEGORY_CHART_COLORS[cat] ?? generateColorForCategory(cat),
         cat,
       }));
-  }, [charges, currentYear, currentMonth]);
+  }, [charges, currentYear, currentMonth, allLabels]);
 
   const incomeData = useMemo(() => {
     const recurring = incomes.filter(i => i.isRecurring);
