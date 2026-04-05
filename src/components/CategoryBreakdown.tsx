@@ -1,4 +1,5 @@
 import { Charge, Income, CATEGORY_LABELS, ChargeCategory, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth } from '@/types/finance';
+import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { Badge } from '@/components/ui/badge';
 import { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
