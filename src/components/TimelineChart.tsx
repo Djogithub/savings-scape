@@ -238,7 +238,8 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
               fillOpacity={revenusOpacity}
               onMouseEnter={() => setHoveredBar('revenus')}
               onMouseLeave={() => setHoveredBar(null)}
-              style={{ transition: 'fill-opacity 0.3s ease' }}
+              style={{ transition: 'fill-opacity 0.5s ease-in-out' }}
+              animationDuration={600}
             />
             <Bar
               dataKey="depenses" name="Dépenses" fill={colors.expense}
@@ -247,7 +248,8 @@ export function TimelineChart({ charges, incomes, projectedCharges = [], project
               fillOpacity={depensesOpacity}
               onMouseEnter={() => setHoveredBar('depenses')}
               onMouseLeave={() => setHoveredBar(null)}
-              style={{ transition: 'fill-opacity 0.3s ease' }}
+              style={{ transition: 'fill-opacity 0.5s ease-in-out' }}
+              animationDuration={600}
             />
             <Line type="monotone" dataKey="solde" name="Solde" stroke={colors.balance} strokeWidth={3} dot={{ fill: colors.balance, r: 5, strokeWidth: 2, stroke: 'hsl(var(--card))' }} activeDot={{ r: 7, strokeWidth: 3 }} />
             {showProjections && (
