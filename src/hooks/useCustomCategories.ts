@@ -42,10 +42,3 @@ export function getCustomCategories(): Record<string, string> {
     return {};
   }
 }
-
-/** Get all category labels (built-in + custom) */
-export function getAllCategoryLabels(): Record<string, string> {
-  // Import inline to avoid circular deps
-  const { CATEGORY_LABELS } = require('@/types/finance');
-  return { ...CATEGORY_LABELS, ...getCustomCategories() };
-}
