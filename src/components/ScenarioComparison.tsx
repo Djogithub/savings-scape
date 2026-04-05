@@ -180,9 +180,16 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
     return entry;
   });
 
-  const categories = Object.keys(CATEGORY_LABELS) as ChargeCategory[];
-  const categoryData = categories.map(cat => {
-    const entry: Record<string, string | number> = { category: CATEGORY_LABELS[cat] };
+  const customCats = getCustomCategories();
+  const allCatKeys = [...new Set([
+    ...Object.keys(CATEGORY_LABELS),
+    ...Object.keys(customCats),
+    ...actualCharges.map(c => c.category),
+    ...filteredScenarios.flatMap(s => s.charges.map(c => c.category)),
+  ])];
+  const allLabels: Record<string, string> = { ...CATEGORY_LABELS, ...customCats };
+  const categoryData = allCatKeys.map(cat => {
+    const entry: Record<string, string | number> = { category: allLabels[cat] ?? cat };
     entry['Actuel'] = actualCharges.filter(c => c.category === cat).reduce((s, c) => s + getChargeAmountForMonth(c, currentYear, currentMonth), 0);
     filteredScenarios.forEach(s => {
       entry[s.name] = s.charges.filter(c => c.category === cat).reduce((sum, c) => sum + getChargeAmountForMonth(c, currentYear, currentMonth), 0);

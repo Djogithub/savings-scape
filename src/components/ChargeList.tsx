@@ -1,4 +1,5 @@
 import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SEASON_LABELS, Season } from '@/types/finance';
+import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { Button } from '@/components/ui/button';
 import { Trash2, Edit2, Calendar, CreditCard } from 'lucide-react';
 import { ChargeForm } from './ChargeForm';
@@ -75,7 +76,7 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className="font-medium text-sm truncate">{charge.name}</span>
                   <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${getCategoryColor(charge.category)}`}>
-                    {CATEGORY_LABELS[charge.category]}
+                    {(CATEGORY_LABELS as Record<string, string>)[charge.category] ?? getCustomCategories()[charge.category] ?? charge.category}
                   </Badge>
                   <Badge variant="outline" className="text-[11px] font-normal">
                     {CHARGE_TYPE_LABELS[charge.type]}
