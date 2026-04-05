@@ -88,9 +88,14 @@ export function getChargeAmountForMonth(charge: Charge, year: number, month: num
     const targetMonth = year * 12 + month;
     if (targetMonth > endMonth) return 0;
   }
-  // One-time: only in the start month
+  // One-time: only in the start month (or current month if no date set)
   if (charge.type === 'one-time') {
-    if (!charge.startDate) return charge.amount;
+    if (!charge.startDate) {
+      // No start date: apply only in current month
+      const now = new Date();
+      if (now.getFullYear() === year && now.getMonth() === month) return charge.amount;
+      return 0;
+    }
     const start = new Date(charge.startDate);
     if (start.getFullYear() === year && start.getMonth() === month) return charge.amount;
     return 0;
@@ -120,7 +125,12 @@ export function getIncomeAmountForMonth(income: Income, year: number, month: num
     if (targetMonth > endMonth) return 0;
   }
   if (!income.isRecurring) {
-    if (!income.startDate) return income.amount;
+    if (!income.startDate) {
+      // No start date: apply only in current month
+      const now = new Date();
+      if (now.getFullYear() === year && now.getMonth() === month) return income.amount;
+      return 0;
+    }
     const start = new Date(income.startDate);
     if (start.getFullYear() === year && start.getMonth() === month) return income.amount;
     return 0;
