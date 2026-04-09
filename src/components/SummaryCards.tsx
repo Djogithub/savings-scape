@@ -1,6 +1,5 @@
 import { Charge, Income, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth } from '@/types/finance';
 import { TrendingDown, TrendingUp, Wallet, PiggyBank } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface SummaryCardsProps {
   charges: Charge[];
@@ -11,17 +10,6 @@ interface SummaryCardsProps {
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
 }
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0, scale: 1,
-    transition: {
-      delay: i * 0.08, duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
-    },
-  }),
-};
 
 export function SummaryCards({ charges, incomes, compact = false }: SummaryCardsProps) {
   const totalCharges = getCurrentMonthChargesTotal(charges);
@@ -70,12 +58,10 @@ export function SummaryCards({ charges, incomes, compact = false }: SummaryCards
 
   return (
     <div className={`grid gap-3 ${compact ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'}`}>
-      {cards.map((card, i) => (
-        <motion.div
+      {cards.map((card) => (
+        <div
           key={card.label}
-          className={`glass-card premium-shadow hover:shadow-md transition-shadow duration-300 ${compact ? 'p-3' : 'p-5'}`}
-          custom={i} initial="hidden" animate="visible" variants={cardVariants}
-          whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          className={`glass-card premium-shadow ${compact ? 'p-3' : 'p-5'}`}
         >
           <div className={`flex items-start justify-between ${compact ? 'mb-2' : 'mb-4'}`}>
             <span className={`font-medium text-muted-foreground ${compact ? 'text-[11px]' : 'text-[13px]'}`}>{card.label}</span>
@@ -89,7 +75,7 @@ export function SummaryCards({ charges, incomes, compact = false }: SummaryCards
           {card.subtitle && (
             <p className={`text-muted-foreground mt-0.5 ${compact ? 'text-[10px]' : 'text-xs mt-1'}`}>{card.subtitle}</p>
           )}
-        </motion.div>
+        </div>
       ))}
     </div>
   );

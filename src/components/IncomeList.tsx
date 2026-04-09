@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Income } from '@/types/finance';
+import { INCOME_ICON } from '@/lib/categoryIcons';
 import { Button } from '@/components/ui/button';
-import { Trash2, Edit2, Plus, Minus } from 'lucide-react';
+import { Trash2, Edit2, Plus, Minus, GripVertical } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { IncomeForm } from './IncomeForm';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +13,7 @@ interface IncomeListProps {
   onUpdate?: (id: string, updates: Partial<Income>) => void;
   onAdd?: (income: Omit<Income, 'id'>) => void;
   isProjection?: boolean;
+  storageKey?: string;
 }
 
 function formatCurrency(n: number) {
@@ -27,9 +29,34 @@ const itemVariants = {
   exit: { opacity: 0, x: 12, height: 0, marginBottom: 0, transition: { duration: 0.2 } },
 };
 
-export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = false }: IncomeListProps) {
+function useItemOrder(key: string, ids: string[]) {
+  const [order, setOrder] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
+
+  useEffect(() => {
+    if (order.length > 0) localStorage.setItem(key, JSON.stringify(order));
+  }, [order, key]);
+
+  const effectiveOrder = [
+    ...order.filter(id => ids.includes(id)),
+    ...ids.filter(id => !order.includes(id)),
+  ];
+
+  return { effectiveOrder, setOrder };
+}
+
+export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = false, storageKey = 'income-order' }: IncomeListProps) {
   const totalMonthly = incomes.reduce((sum, i) => sum + i.amount, 0);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+
+  const incomeIds = incomes.map(i => i.id);
+  const { effectiveOrder, setOrder } = useItemOrder(storageKey, incomeIds);
+  const sortedIncomes = effectiveOrder.map(id => incomes.find(i => i.id === id)).filter(Boolean) as Income[];
 
   const toggle = (id: string) => {
     setExpandedIds(prev => {
@@ -38,6 +65,22 @@ export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = 
       return next;
     });
   };
+
+  const handleDragStart = (id: string) => setDraggedId(id);
+  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId) return;
+    const newOrder = [...effectiveOrder];
+    const from = newOrder.indexOf(draggedId);
+    const to = newOrder.indexOf(targetId);
+    if (from === -1 || to === -1) return;
+    newOrder.splice(from, 1);
+    newOrder.splice(to, 0, draggedId);
+    setOrder(newOrder);
+  };
+  const handleDragEnd = () => setDraggedId(null);
+
+  const IncIcon = INCOME_ICON;
 
   return (
     <div className="space-y-3">
@@ -53,19 +96,25 @@ export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = 
         </motion.div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1.5">
         <AnimatePresence mode="popLayout">
-          {incomes.map((income, i) => {
+          {sortedIncomes.map((income, i) => {
             const isExpanded = expandedIds.has(income.id);
 
             return (
               <motion.div
                 key={income.id}
-                className="glass-card group hover:shadow-md transition-shadow duration-200 overflow-hidden"
+                className={`glass-card group hover:shadow-md transition-shadow duration-200 overflow-hidden ${draggedId === income.id ? 'opacity-50' : ''}`}
                 custom={i} initial="hidden" animate="visible" exit="exit" variants={itemVariants} layout
+                draggable
+                onDragStart={() => handleDragStart(income.id)}
+                onDragOver={(e) => handleDragOver(e, income.id)}
+                onDragEnd={handleDragEnd}
               >
                 {/* Compact view */}
-                <div className="flex items-center gap-3 px-3 py-2">
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <GripVertical className="h-3 w-3 text-muted-foreground/40 cursor-grab active:cursor-grabbing shrink-0" />
+                  <IncIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="font-medium text-sm truncate flex-1 min-w-0">{income.name}</span>
 
                   {income.endDate && (
