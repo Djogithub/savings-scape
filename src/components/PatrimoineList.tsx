@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { PatrimoineItem, PATRIMOINE_CATEGORY_LABELS } from '@/types/finance';
 import { Button } from '@/components/ui/button';
-import { Trash2, Edit2, TrendingUp, Building2, PiggyBank, Briefcase, Landmark } from 'lucide-react';
+import { Trash2, Edit2, TrendingUp, Building2, PiggyBank, Briefcase, Landmark, Plus, Minus } from 'lucide-react';
 import { PatrimoineForm } from './PatrimoineForm';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,6 +39,17 @@ function getCategoryColor(cat: string): string {
   return colors[cat] ?? colors['epargne'];
 }
 
+function getCategoryDotColor(cat: string): string {
+  const colors: Record<string, string> = {
+    'epargne': 'bg-emerald-400',
+    'immobilier': 'bg-blue-400',
+    'placement': 'bg-purple-400',
+    'epargne-salariale': 'bg-amber-400',
+    'epargne-retraite': 'bg-teal-400',
+  };
+  return colors[cat] ?? 'bg-emerald-400';
+}
+
 /**
  * Project value from entry date to now using annual growth rate.
  */
@@ -69,6 +81,15 @@ const itemVariants = {
 
 export function PatrimoineList({ items, onDelete, onUpdate, onAdd }: PatrimoineListProps) {
   const totalValue = items.reduce((sum, i) => sum + getProjectedValue(i), 0);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggle = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-3">
@@ -84,51 +105,94 @@ export function PatrimoineList({ items, onDelete, onUpdate, onAdd }: PatrimoineL
         </motion.div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <AnimatePresence mode="popLayout">
           {items.map((item, i) => {
             const Icon = getCategoryIcon(item.category);
             const projected = getProjectedValue(item);
             const gain = projected - item.currentValue;
+            const isExpanded = expandedIds.has(item.id);
+
             return (
               <motion.div
                 key={item.id}
-                className="glass-card p-4 flex items-center justify-between gap-4 group hover:shadow-md transition-shadow duration-200"
+                className="glass-card group hover:shadow-md transition-shadow duration-200 overflow-hidden"
                 custom={i} initial="hidden" animate="visible" exit="exit" variants={itemVariants} layout
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-sm truncate">{item.name}</span>
-                    <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${getCategoryColor(item.category)}`}>
+                {/* Compact view */}
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <span className="font-medium text-sm truncate flex-1 min-w-0">{item.name}</span>
+
+                  <span className="font-bold text-sm tabular-nums text-primary shrink-0">{formatCurrency(projected)}</span>
+
+                  {/* Color dot tags */}
+                  <div className="flex items-center gap-1 shrink-0 group/tags">
+                    <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${getCategoryDotColor(item.category)}`} />
+                    <span className="hidden group-hover/tags:inline text-[10px] text-muted-foreground whitespace-nowrap">
                       {PATRIMOINE_CATEGORY_LABELS[item.category]}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-                    <span>Valeur initiale : {formatCurrency(item.currentValue)}</span>
+                    </span>
                     {item.annualGrowthRate > 0 && (
-                      <span className="text-primary font-medium">+{item.annualGrowthRate}%/an</span>
-                    )}
-                    {gain > 0 && (
-                      <span className="text-primary">+{formatCurrency(gain)} depuis saisie</span>
+                      <>
+                        <span className="inline-block w-2 h-2 rounded-full shrink-0 bg-primary/50" />
+                        <span className="hidden group-hover/tags:inline text-[10px] text-muted-foreground whitespace-nowrap">
+                          +{item.annualGrowthRate}%/an
+                        </span>
+                      </>
                     )}
                   </div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="font-bold text-base tabular-nums text-primary">{formatCurrency(projected)}</div>
-                  <div className="text-[11px] text-muted-foreground">valeur estimée</div>
-                </div>
-                <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <PatrimoineForm
-                    editItem={item}
-                    onSubmit={onAdd}
-                    onUpdate={onUpdate}
-                    trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
-                  />
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(item.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
+
+                  <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => toggle(item.id)}>
+                    {isExpanded ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
                   </Button>
                 </div>
+
+                {/* Expanded view */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-3 pb-3 pt-1 border-t border-border/40">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                          <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${getCategoryColor(item.category)}`}>
+                            {PATRIMOINE_CATEGORY_LABELS[item.category]}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap mb-2">
+                          <span>Valeur initiale : {formatCurrency(item.currentValue)}</span>
+                          {item.annualGrowthRate > 0 && (
+                            <span className="text-primary font-medium">+{item.annualGrowthRate}%/an</span>
+                          )}
+                          {gain > 0 && (
+                            <span className="text-primary">+{formatCurrency(gain)} depuis saisie</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-bold text-base tabular-nums text-primary">{formatCurrency(projected)}</div>
+                            <div className="text-[11px] text-muted-foreground">valeur estimée</div>
+                          </div>
+                          <div className="flex gap-0.5">
+                            <PatrimoineForm
+                              editItem={item}
+                              onSubmit={onAdd}
+                              onUpdate={onUpdate}
+                              trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
+                            />
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(item.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             );
           })}
