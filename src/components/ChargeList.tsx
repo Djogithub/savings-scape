@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SEASON_LABELS, Season } from '@/types/finance';
 import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { Button } from '@/components/ui/button';
-import { Trash2, Edit2, Calendar, CreditCard } from 'lucide-react';
+import { Trash2, Edit2, Calendar, CreditCard, Plus, Minus } from 'lucide-react';
 import { ChargeForm } from './ChargeForm';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,6 +50,15 @@ const itemVariants = {
 
 export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, onAdd }: ChargeListProps) {
   const totalMonthly = charges.reduce((sum, c) => sum + c.amount, 0);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggle = (id: string) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
 
   return (
     <div className="space-y-3">
@@ -64,79 +74,127 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
         </motion.div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <AnimatePresence mode="popLayout">
-          {charges.map((charge, i) => (
-            <motion.div
-              key={charge.id}
-              className="glass-card p-4 flex items-center justify-between gap-4 group hover:shadow-md transition-shadow duration-200"
-              custom={i} initial="hidden" animate="visible" exit="exit" variants={itemVariants} layout
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="font-medium text-sm truncate">{charge.name}</span>
-                  <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${getCategoryColor(charge.category)}`}>
-                    {(CATEGORY_LABELS as Record<string, string>)[charge.category] ?? getCustomCategories()[charge.category] ?? charge.category}
-                  </Badge>
-                  <Badge variant="outline" className="text-[11px] font-normal">
-                    {CHARGE_TYPE_LABELS[charge.type]}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-                  {charge.startDate && (
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(charge.startDate).toLocaleDateString('fr-FR')}
-                      {charge.endDate && ` → ${new Date(charge.endDate).toLocaleDateString('fr-FR')}`}
+          {charges.map((charge, i) => {
+            const isExpanded = expandedIds.has(charge.id);
+            const categoryLabel = (CATEGORY_LABELS as Record<string, string>)[charge.category] ?? getCustomCategories()[charge.category] ?? charge.category;
+
+            return (
+              <motion.div
+                key={charge.id}
+                className="glass-card group hover:shadow-md transition-shadow duration-200 overflow-hidden"
+                custom={i} initial="hidden" animate="visible" exit="exit" variants={itemVariants} layout
+              >
+                {/* Compact view */}
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <span className="font-medium text-sm truncate flex-1 min-w-0">{charge.name}</span>
+                  
+                  {charge.endDate && (
+                    <span className="text-[11px] text-muted-foreground shrink-0">
+                      → {new Date(charge.endDate).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}
                     </span>
                   )}
-                  {charge.type === 'seasonal' && charge.seasonalAmounts && (
-                    <span className="flex items-center gap-1 flex-wrap">
-                      {(Object.entries(charge.seasonalAmounts) as [Season, number][]).map(([season, amt]) => (
-                        <span key={season} className="inline-flex items-center gap-0.5 bg-muted/60 px-1.5 py-0.5 rounded text-[10px]">
-                          {SEASON_LABELS[season].split(' ')[0]}: {formatCurrency(amt)}
-                        </span>
-                      ))}
+
+                  <span className="font-bold text-sm tabular-nums shrink-0">{formatCurrency(charge.amount)}</span>
+
+                  {/* Color dot tags — expand on hover */}
+                  <div className="flex items-center gap-1 shrink-0 group/tags">
+                    <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${getCategoryColor(charge.category).split(' ')[0]}`} />
+                    <span className="hidden group-hover/tags:inline text-[10px] text-muted-foreground whitespace-nowrap transition-all">
+                      {categoryLabel}
                     </span>
-                  )}
-                  {charge.totalAmount && (() => {
-                    let remaining = charge.totalAmount - (charge.paidAmount ?? 0);
-                    if (charge.startDate && charge.amount > 0) {
-                      const start = new Date(charge.startDate);
-                      const now = new Date();
-                      const monthsElapsed = Math.max(0, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()));
-                      remaining = Math.max(0, charge.totalAmount - (charge.paidAmount ?? 0) - (monthsElapsed * charge.amount));
-                    }
-                    return (
-                      <span className="flex items-center gap-1">
-                        <CreditCard className="h-3 w-3" />
-                        Reste: {formatCurrency(remaining)}
-                      </span>
-                    );
-                  })()}
-                  {charge.interestRate != null && (
-                    <span className="text-warning font-medium">Taux: {charge.interestRate}%</span>
-                  )}
+                    <span className="inline-block w-2 h-2 rounded-full shrink-0 bg-muted-foreground/30" />
+                    <span className="hidden group-hover/tags:inline text-[10px] text-muted-foreground whitespace-nowrap transition-all">
+                      {CHARGE_TYPE_LABELS[charge.type]}
+                    </span>
+                  </div>
+
+                  <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => toggle(charge.id)}>
+                    {isExpanded ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+                  </Button>
                 </div>
-              </div>
-              <div className="text-right shrink-0">
-                <div className="font-bold text-base tabular-nums">{formatCurrency(charge.amount)}</div>
-                <div className="text-[11px] text-muted-foreground">{charge.type === 'seasonal' ? 'moy./mois' : '/mois'}</div>
-              </div>
-              <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ChargeForm
-                  editCharge={charge}
-                  onSubmit={onAdd}
-                  onUpdate={onUpdate}
-                  isProjection={isProjection}
-                  trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
-                />
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(charge.id)}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </motion.div>
-          ))}
+
+                {/* Expanded view */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-3 pb-3 pt-1 border-t border-border/40">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${getCategoryColor(charge.category)}`}>
+                            {categoryLabel}
+                          </Badge>
+                          <Badge variant="outline" className="text-[11px] font-normal">
+                            {CHARGE_TYPE_LABELS[charge.type]}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap mb-2">
+                          {charge.startDate && (
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(charge.startDate).toLocaleDateString('fr-FR')}
+                              {charge.endDate && ` → ${new Date(charge.endDate).toLocaleDateString('fr-FR')}`}
+                            </span>
+                          )}
+                          {charge.type === 'seasonal' && charge.seasonalAmounts && (
+                            <span className="flex items-center gap-1 flex-wrap">
+                              {(Object.entries(charge.seasonalAmounts) as [Season, number][]).map(([season, amt]) => (
+                                <span key={season} className="inline-flex items-center gap-0.5 bg-muted/60 px-1.5 py-0.5 rounded text-[10px]">
+                                  {SEASON_LABELS[season].split(' ')[0]}: {formatCurrency(amt)}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                          {charge.totalAmount && (() => {
+                            let remaining = charge.totalAmount - (charge.paidAmount ?? 0);
+                            if (charge.startDate && charge.amount > 0) {
+                              const start = new Date(charge.startDate);
+                              const now = new Date();
+                              const monthsElapsed = Math.max(0, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()));
+                              remaining = Math.max(0, charge.totalAmount - (charge.paidAmount ?? 0) - (monthsElapsed * charge.amount));
+                            }
+                            return (
+                              <span className="flex items-center gap-1">
+                                <CreditCard className="h-3 w-3" />
+                                Reste: {formatCurrency(remaining)}
+                              </span>
+                            );
+                          })()}
+                          {charge.interestRate != null && (
+                            <span className="text-warning font-medium">Taux: {charge.interestRate}%</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-bold text-base tabular-nums">{formatCurrency(charge.amount)}</div>
+                            <div className="text-[11px] text-muted-foreground">{charge.type === 'seasonal' ? 'moy./mois' : '/mois'}</div>
+                          </div>
+                          <div className="flex gap-0.5">
+                            <ChargeForm
+                              editCharge={charge}
+                              onSubmit={onAdd}
+                              onUpdate={onUpdate}
+                              isProjection={isProjection}
+                              trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
+                            />
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(charge.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
     </div>
