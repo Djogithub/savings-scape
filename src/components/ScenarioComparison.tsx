@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Scenario, Charge, Income, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
 import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -72,14 +72,15 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>(scenarios.map(s => s.id));
   const [projectionFilter, setProjectionFilter] = useState<ProjectionFilter>('solde-disponible');
   const [categoryChartType, setCategoryChartType] = useState<CategoryChartType>('histogram');
-  const [barOrder, setBarOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
+  const [scenarioOrder, setScenarioOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
 
-  const currentOrder = barOrder.filter(id => id === '__actual__' || scenarios.some(s => s.id === id && selectedScenarios.includes(s.id)));
+  // Effective order for scenarios (used for bar chart and everywhere)
+  const currentOrder = scenarioOrder.filter(id => id === '__actual__' || scenarios.some(s => s.id === id && selectedScenarios.includes(s.id)));
   const missingIds = selectedScenarios.filter(id => !currentOrder.includes(id));
   const effectiveOrder = [...currentOrder, ...missingIds];
   if (!effectiveOrder.includes('__actual__')) effectiveOrder.unshift('__actual__');
@@ -94,7 +95,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
     if (fromIdx === -1 || toIdx === -1) return;
     newOrder.splice(fromIdx, 1);
     newOrder.splice(toIdx, 0, draggedItem);
-    setBarOrder(newOrder);
+    setScenarioOrder(newOrder);
   };
   const handleDragEnd = () => setDraggedItem(null);
 
@@ -153,7 +154,6 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
     };
   }).filter(Boolean);
 
-  // 12 month projection with date-aware calculation
   const monthlyProjectionFiltered = Array.from({ length: 12 }, (_, monthOffset) => {
     const targetMonth = (currentMonth + monthOffset) % 12;
     const targetYear = currentYear + Math.floor((currentMonth + monthOffset) / 12);
@@ -215,7 +215,6 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
     </defs>
   );
 
-  // Category histogram gradient defs
   const categoryGradientDefs = (
     <defs>
       {allNames.map((name, i) => {
@@ -255,23 +254,42 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
 
   return (
     <div className="space-y-6">
-      {/* Scenario selector pills */}
-      <motion.div className="flex flex-wrap gap-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <span className="text-sm text-muted-foreground self-center mr-2">Comparer :</span>
-        {scenarios.map((s, i) => {
-          const isSelected = selectedScenarios.includes(s.id);
+      {/* Scenario selector pills with drag & drop */}
+      <motion.div className="flex flex-wrap gap-2 items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <span className="text-sm text-muted-foreground mr-2">Comparer :</span>
+        <span className="text-[11px] text-muted-foreground mr-1">↕ Glissez pour réorganiser</span>
+        {effectiveOrder.map((id) => {
+          const isActual = id === '__actual__';
+          const scenario = isActual ? null : scenarios.find(s => s.id === id);
+          const label = isActual ? 'Actuel' : scenario?.name;
+          if (!label) return null;
+          const isSelected = isActual || selectedScenarios.includes(id);
+          const color = colorMap[id] || softActualColor;
+
           return (
-            <motion.button
-              key={s.id} onClick={() => toggleScenario(s.id)}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
-                isSelected ? 'bg-card border-border shadow-sm' : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
+            <div
+              key={id}
+              draggable
+              onDragStart={() => handleDragStart(id)}
+              onDragOver={(e) => handleDragOver(e, id)}
+              onDragEnd={handleDragEnd}
+              className={`inline-flex items-center gap-1.5 cursor-grab active:cursor-grabbing transition-all ${
+                draggedItem === id ? 'opacity-50' : ''
               }`}
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             >
-              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: getSoftColor(s, i) }} />
-              {s.name}
-              {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-            </motion.button>
+              <motion.button
+                onClick={() => !isActual && toggleScenario(id)}
+                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
+                  isSelected ? 'bg-card border-border shadow-sm' : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
+                }`}
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              >
+                <GripVertical className="h-3 w-3 text-muted-foreground/50" />
+                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+                {label}
+                {isSelected && !isActual && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+              </motion.button>
+            </div>
           );
         })}
       </motion.div>
@@ -361,37 +379,13 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
         </Card>
       </motion.div>
 
-      {/* FULL WIDTH: Bar chart */}
+      {/* Bar chart - no drag here anymore */}
       <motion.div custom={4} initial="hidden" animate="visible" variants={cardVariants}>
         <Card className="glass-card">
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Revenus vs Charges vs Solde</CardTitle>
-              <span className="text-[11px] text-muted-foreground">↕ Glissez pour réorganiser</span>
-            </div>
+            <CardTitle className="text-base">Revenus vs Charges vs Solde</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {effectiveOrder.map((id) => {
-                const label = id === '__actual__' ? 'Actuel' : (filteredScenarios.find(s => s.id === id)?.name ?? '');
-                if (!label) return null;
-                return (
-                  <div
-                    key={id} draggable
-                    onDragStart={() => handleDragStart(id)}
-                    onDragOver={(e) => handleDragOver(e, id)}
-                    onDragEnd={handleDragEnd}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium cursor-grab active:cursor-grabbing border transition-all ${
-                      draggedItem === id ? 'opacity-50 border-primary bg-primary/5' : 'border-border/50 bg-muted/30 hover:bg-muted/60'
-                    }`}
-                  >
-                    <GripVertical className="h-3 w-3 text-muted-foreground" />
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colorMap[id] || softActualColor }} />
-                    {label}
-                  </div>
-                );
-              })}
-            </div>
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={barData} barCategoryGap="20%">
                 {barGradientDefs}
@@ -409,7 +403,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes }: 
         </Card>
       </motion.div>
 
-      {/* FULL WIDTH: Projection chart */}
+      {/* Projection chart */}
       <motion.div custom={5} initial="hidden" animate="visible" variants={cardVariants}>
         <Card className="glass-card">
           <CardHeader className="pb-2">

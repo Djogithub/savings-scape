@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SEASON_LABELS, Season } from '@/types/finance';
 import { getCustomCategories } from '@/hooks/useCustomCategories';
+import { getChargeCategoryIcon } from '@/lib/categoryIcons';
 import { Button } from '@/components/ui/button';
-import { Trash2, Edit2, Calendar, CreditCard, Plus, Minus } from 'lucide-react';
+import { Trash2, Edit2, Calendar, CreditCard, Plus, Minus, GripVertical } from 'lucide-react';
 import { ChargeForm } from './ChargeForm';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,6 +14,7 @@ interface ChargeListProps {
   onUpdate: (id: string, updates: Partial<Charge>) => void;
   isProjection?: boolean;
   onAdd: (charge: Omit<Charge, 'id'>) => void;
+  storageKey?: string;
 }
 
 function formatCurrency(n: number) {
@@ -48,9 +50,35 @@ const itemVariants = {
   exit: { opacity: 0, x: 12, height: 0, marginBottom: 0, transition: { duration: 0.2 } },
 };
 
-export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, onAdd }: ChargeListProps) {
+function useItemOrder(key: string, ids: string[]) {
+  const [order, setOrder] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
+
+  useEffect(() => {
+    if (order.length > 0) localStorage.setItem(key, JSON.stringify(order));
+  }, [order, key]);
+
+  const effectiveOrder = [
+    ...order.filter(id => ids.includes(id)),
+    ...ids.filter(id => !order.includes(id)),
+  ];
+
+  return { effectiveOrder, setOrder };
+}
+
+export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, onAdd, storageKey = 'charge-order' }: ChargeListProps) {
   const totalMonthly = charges.reduce((sum, c) => sum + c.amount, 0);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+
+  const chargeIds = charges.map(c => c.id);
+  const { effectiveOrder, setOrder } = useItemOrder(storageKey, chargeIds);
+
+  const sortedCharges = effectiveOrder.map(id => charges.find(c => c.id === id)).filter(Boolean) as Charge[];
 
   const toggle = (id: string) => {
     setExpandedIds(prev => {
@@ -59,6 +87,20 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
       return next;
     });
   };
+
+  const handleDragStart = (id: string) => setDraggedId(id);
+  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId) return;
+    const newOrder = [...effectiveOrder];
+    const from = newOrder.indexOf(draggedId);
+    const to = newOrder.indexOf(targetId);
+    if (from === -1 || to === -1) return;
+    newOrder.splice(from, 1);
+    newOrder.splice(to, 0, draggedId);
+    setOrder(newOrder);
+  };
+  const handleDragEnd = () => setDraggedId(null);
 
   return (
     <div className="space-y-3">
@@ -74,20 +116,27 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
         </motion.div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1.5">
         <AnimatePresence mode="popLayout">
-          {charges.map((charge, i) => {
+          {sortedCharges.map((charge, i) => {
             const isExpanded = expandedIds.has(charge.id);
             const categoryLabel = (CATEGORY_LABELS as Record<string, string>)[charge.category] ?? getCustomCategories()[charge.category] ?? charge.category;
+            const Icon = getChargeCategoryIcon(charge.category);
 
             return (
               <motion.div
                 key={charge.id}
-                className="glass-card group hover:shadow-md transition-shadow duration-200 overflow-hidden"
+                className={`glass-card group hover:shadow-md transition-shadow duration-200 overflow-hidden ${draggedId === charge.id ? 'opacity-50' : ''}`}
                 custom={i} initial="hidden" animate="visible" exit="exit" variants={itemVariants} layout
+                draggable
+                onDragStart={() => handleDragStart(charge.id)}
+                onDragOver={(e) => handleDragOver(e, charge.id)}
+                onDragEnd={handleDragEnd}
               >
                 {/* Compact view */}
-                <div className="flex items-center gap-3 px-3 py-2">
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <GripVertical className="h-3 w-3 text-muted-foreground/40 cursor-grab active:cursor-grabbing shrink-0" />
+                  <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="font-medium text-sm truncate flex-1 min-w-0">{charge.name}</span>
                   
                   {charge.endDate && (

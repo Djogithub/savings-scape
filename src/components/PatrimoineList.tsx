@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PatrimoineItem, PATRIMOINE_CATEGORY_LABELS } from '@/types/finance';
+import { getPatrimoineCategoryIcon } from '@/lib/categoryIcons';
 import { Button } from '@/components/ui/button';
-import { Trash2, Edit2, TrendingUp, Building2, PiggyBank, Briefcase, Landmark, Plus, Minus } from 'lucide-react';
+import { Trash2, Edit2, TrendingUp, Plus, Minus, GripVertical } from 'lucide-react';
 import { PatrimoineForm } from './PatrimoineForm';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,21 +12,11 @@ interface PatrimoineListProps {
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<PatrimoineItem>) => void;
   onAdd: (item: Omit<PatrimoineItem, 'id'>) => void;
+  storageKey?: string;
 }
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
-}
-
-function getCategoryIcon(cat: string) {
-  const icons: Record<string, typeof PiggyBank> = {
-    'epargne': PiggyBank,
-    'immobilier': Building2,
-    'placement': TrendingUp,
-    'epargne-salariale': Briefcase,
-    'epargne-retraite': Landmark,
-  };
-  return icons[cat] ?? PiggyBank;
 }
 
 function getCategoryColor(cat: string): string {
@@ -50,9 +41,6 @@ function getCategoryDotColor(cat: string): string {
   return colors[cat] ?? 'bg-emerald-400';
 }
 
-/**
- * Project value from entry date to now using annual growth rate.
- */
 function getProjectedValue(item: PatrimoineItem): number {
   const entryDate = new Date(item.entryDate);
   const now = new Date();
@@ -61,9 +49,6 @@ function getProjectedValue(item: PatrimoineItem): number {
   return item.currentValue * Math.pow(1 + item.annualGrowthRate / 100, yearsElapsed);
 }
 
-/**
- * Project value N months from now.
- */
 export function getProjectedValueAtMonth(item: PatrimoineItem, months: number): number {
   const projected = getProjectedValue(item);
   const yearsForward = months / 12;
@@ -79,9 +64,34 @@ const itemVariants = {
   exit: { opacity: 0, x: 12, height: 0, marginBottom: 0, transition: { duration: 0.2 } },
 };
 
-export function PatrimoineList({ items, onDelete, onUpdate, onAdd }: PatrimoineListProps) {
+function useItemOrder(key: string, ids: string[]) {
+  const [order, setOrder] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
+
+  useEffect(() => {
+    if (order.length > 0) localStorage.setItem(key, JSON.stringify(order));
+  }, [order, key]);
+
+  const effectiveOrder = [
+    ...order.filter(id => ids.includes(id)),
+    ...ids.filter(id => !order.includes(id)),
+  ];
+
+  return { effectiveOrder, setOrder };
+}
+
+export function PatrimoineList({ items, onDelete, onUpdate, onAdd, storageKey = 'patrimoine-order' }: PatrimoineListProps) {
   const totalValue = items.reduce((sum, i) => sum + getProjectedValue(i), 0);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+
+  const itemIds = items.map(i => i.id);
+  const { effectiveOrder, setOrder } = useItemOrder(storageKey, itemIds);
+  const sortedItems = effectiveOrder.map(id => items.find(i => i.id === id)).filter(Boolean) as PatrimoineItem[];
 
   const toggle = (id: string) => {
     setExpandedIds(prev => {
@@ -90,6 +100,20 @@ export function PatrimoineList({ items, onDelete, onUpdate, onAdd }: PatrimoineL
       return next;
     });
   };
+
+  const handleDragStart = (id: string) => setDraggedId(id);
+  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId) return;
+    const newOrder = [...effectiveOrder];
+    const from = newOrder.indexOf(draggedId);
+    const to = newOrder.indexOf(targetId);
+    if (from === -1 || to === -1) return;
+    newOrder.splice(from, 1);
+    newOrder.splice(to, 0, draggedId);
+    setOrder(newOrder);
+  };
+  const handleDragEnd = () => setDraggedId(null);
 
   return (
     <div className="space-y-3">
@@ -105,10 +129,10 @@ export function PatrimoineList({ items, onDelete, onUpdate, onAdd }: PatrimoineL
         </motion.div>
       )}
 
-      <div className="space-y-1.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1.5">
         <AnimatePresence mode="popLayout">
-          {items.map((item, i) => {
-            const Icon = getCategoryIcon(item.category);
+          {sortedItems.map((item, i) => {
+            const Icon = getPatrimoineCategoryIcon(item.category);
             const projected = getProjectedValue(item);
             const gain = projected - item.currentValue;
             const isExpanded = expandedIds.has(item.id);
@@ -116,11 +140,17 @@ export function PatrimoineList({ items, onDelete, onUpdate, onAdd }: PatrimoineL
             return (
               <motion.div
                 key={item.id}
-                className="glass-card group hover:shadow-md transition-shadow duration-200 overflow-hidden"
+                className={`glass-card group hover:shadow-md transition-shadow duration-200 overflow-hidden ${draggedId === item.id ? 'opacity-50' : ''}`}
                 custom={i} initial="hidden" animate="visible" exit="exit" variants={itemVariants} layout
+                draggable
+                onDragStart={() => handleDragStart(item.id)}
+                onDragOver={(e) => handleDragOver(e, item.id)}
+                onDragEnd={handleDragEnd}
               >
                 {/* Compact view */}
-                <div className="flex items-center gap-3 px-3 py-2">
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <GripVertical className="h-3 w-3 text-muted-foreground/40 cursor-grab active:cursor-grabbing shrink-0" />
+                  <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
                   <span className="font-medium text-sm truncate flex-1 min-w-0">{item.name}</span>
 
                   <span className="font-bold text-sm tabular-nums text-primary shrink-0">{formatCurrency(projected)}</span>
@@ -158,7 +188,6 @@ export function PatrimoineList({ items, onDelete, onUpdate, onAdd }: PatrimoineL
                     >
                       <div className="px-3 pb-3 pt-1 border-t border-border/40">
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <Icon className="h-4 w-4 text-muted-foreground" />
                           <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${getCategoryColor(item.category)}`}>
                             {PATRIMOINE_CATEGORY_LABELS[item.category]}
                           </Badge>
