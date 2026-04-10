@@ -135,6 +135,10 @@ const Index = () => {
               <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
                 {activeTab === 'actual' && (
                   <div className="space-y-8">
+                    <div>
+                      <h1 className="text-xl font-bold tracking-tight">Situation réelle</h1>
+                      <p className="text-sm text-muted-foreground">Vue d'ensemble de vos finances actuelles.</p>
+                    </div>
                     <SummaryCards charges={actualCharges} incomes={actualIncomes} />
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -195,20 +199,20 @@ const Index = () => {
 
                 {activeTab === 'categories' && (
                   <div className="space-y-6">
+                    <div>
+                      <h1 className="text-xl font-bold tracking-tight">Catégories</h1>
+                      <p className="text-sm text-muted-foreground">Répartition de vos dépenses et revenus par catégorie.</p>
+                    </div>
                     <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
                   </div>
                 )}
 
                 {activeTab === 'projections' && (
                   <div className="space-y-6">
-                    <motion.div
-                      className="glass-card p-4 border-l-4 border-l-warning/60"
-                      initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
-                    >
-                      <p className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">Scénarios</span> — Simulez différentes situations financières.
-                      </p>
-                    </motion.div>
+                    <div>
+                      <h1 className="text-xl font-bold tracking-tight">Scénarios</h1>
+                      <p className="text-sm text-muted-foreground">Simulez différentes situations financières.</p>
+                    </div>
                     <ScenarioManager
                       scenarios={scenarios}
                       actualCharges={actualCharges}
