@@ -135,6 +135,10 @@ const Index = () => {
               <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
                 {activeTab === 'actual' && (
                   <div className="space-y-8">
+                    <div>
+                      <h1 className="text-xl font-bold tracking-tight">Situation réelle</h1>
+                      <p className="text-sm text-muted-foreground">Vue d'ensemble de vos finances actuelles.</p>
+                    </div>
                     <SummaryCards charges={actualCharges} incomes={actualIncomes} />
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -195,6 +199,10 @@ const Index = () => {
 
                 {activeTab === 'categories' && (
                   <div className="space-y-6">
+                    <div>
+                      <h1 className="text-xl font-bold tracking-tight">Catégories</h1>
+                      <p className="text-sm text-muted-foreground">Répartition de vos dépenses et revenus par catégorie.</p>
+                    </div>
                     <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
                   </div>
                 )}
