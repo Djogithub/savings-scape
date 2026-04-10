@@ -8,9 +8,9 @@ interface ScenarioPieChartProps {
 }
 
 const COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--destructive))',
   'hsl(var(--accent))',
+  'hsl(var(--destructive))',
+  'hsl(var(--primary))',
 ];
 
 export function ScenarioPieChart({ charges, incomes, bare = false }: ScenarioPieChartProps) {
