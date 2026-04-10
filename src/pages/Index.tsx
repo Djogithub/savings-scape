@@ -201,14 +201,10 @@ const Index = () => {
 
                 {activeTab === 'projections' && (
                   <div className="space-y-6">
-                    <motion.div
-                      className="glass-card p-4 border-l-4 border-l-warning/60"
-                      initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
-                    >
-                      <p className="text-sm text-muted-foreground">
-                        <span className="font-medium text-foreground">Scénarios</span> — Simulez différentes situations financières.
-                      </p>
-                    </motion.div>
+                    <div>
+                      <h1 className="text-xl font-bold tracking-tight">Scénarios</h1>
+                      <p className="text-sm text-muted-foreground">Simulez différentes situations financières.</p>
+                    </div>
                     <ScenarioManager
                       scenarios={scenarios}
                       actualCharges={actualCharges}
