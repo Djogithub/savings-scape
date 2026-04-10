@@ -129,6 +129,10 @@ const Index = () => {
             </div>
           </header>
 
+          <div className="px-6 pt-2">
+            <SidebarTrigger />
+          </div>
+
           <main className="flex-1 px-6 py-8 space-y-8 max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
               <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
