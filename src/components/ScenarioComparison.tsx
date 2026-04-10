@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import { CATEGORY_LABELS } from '@/types/finance';
 import { motion } from 'framer-motion';
-import { TrendingUp, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import { TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useState } from 'react';
 
 interface ScenarioComparisonProps {
