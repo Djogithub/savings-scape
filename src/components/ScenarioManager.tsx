@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Scenario, Charge, Income, PatrimoineItem } from '@/types/finance';
+import { Scenario, Charge, Income, PatrimoineItem, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -315,42 +315,24 @@ export function ScenarioManager({
           </div>
         )}
 
-        {/* Scenario pills - compare view (with drag & drop) */}
+        {/* Scenario toggle checkboxes - compare view */}
         {view === 'compare' && scenarios.length > 0 && (
           <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-[11px] text-muted-foreground mr-1">↕ Glissez pour réorganiser</span>
-            {effectiveOrder.map((id) => {
-              const isActual = id === '__actual__';
-              const scenario = isActual ? null : scenarios.find(s => s.id === id);
-              const label = isActual ? 'Actuel' : scenario?.name;
-              if (!label) return null;
-              const isSelected = isActual || selectedScenarios.includes(id);
-              const color = colorMap[id] || softActualColor;
-
+            {scenarios.map((s) => {
+              const isSelected = selectedScenarios.includes(s.id);
               return (
-                <div
-                  key={id}
-                  draggable
-                  onDragStart={() => handleDragStart(id)}
-                  onDragOver={(e) => handleDragOver(e, id)}
-                  onDragEnd={handleDragEnd}
-                  className={`inline-flex items-center gap-1.5 cursor-grab active:cursor-grabbing transition-all ${
-                    draggedItem === id ? 'opacity-50' : ''
+                <motion.button
+                  key={s.id}
+                  onClick={() => toggleScenario(s.id)}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
+                    isSelected ? 'bg-card border-border shadow-sm' : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
                   }`}
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                 >
-                  <motion.button
-                    onClick={() => !isActual && toggleScenario(id)}
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
-                      isSelected ? 'bg-card border-border shadow-sm' : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
-                    }`}
-                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  >
-                    <GripVertical className="h-3 w-3 text-muted-foreground/50" />
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-                    {label}
-                    {isSelected && !isActual && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-                  </motion.button>
-                </div>
+                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colorMap[s.id] || softActualColor }} />
+                  {s.name}
+                  {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                </motion.button>
               );
             })}
           </div>
