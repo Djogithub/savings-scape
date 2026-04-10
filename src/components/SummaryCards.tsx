@@ -25,8 +25,8 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
       label: 'Revenus mensuels',
       value: formatCurrency(totalIncomes),
       icon: TrendingUp,
-      iconBg: 'bg-primary/10',
-      iconColor: 'text-primary',
+      iconBg: 'bg-accent/10',
+      iconColor: 'text-accent',
       valueColor: 'text-foreground',
     },
     {
