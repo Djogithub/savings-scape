@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import { CATEGORY_LABELS } from '@/types/finance';
 import { motion } from 'framer-motion';
-import { TrendingUp, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import { TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useState } from 'react';
 
 interface ScenarioComparisonProps {
@@ -100,11 +100,6 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
   const allColors = effectiveOrder.map(id => colorMap[id] || softActualColor);
   const allNames = effectiveOrder.map(id => id === '__actual__' ? 'Actuel' : (filteredScenarios.find(s => s.id === id)?.name ?? ''));
 
-  const allBalances = [actualBalance, ...filteredScenarios.map(s => getScenarioBalance(s))];
-  const bestBalance = Math.max(...allBalances);
-  const worstBalance = Math.min(...allBalances);
-  const bestLabel = bestBalance === actualBalance ? 'Actuel' : (filteredScenarios.find(s => getScenarioBalance(s) === bestBalance)?.name ?? '');
-  const worstLabel = worstBalance === actualBalance ? 'Actuel' : (filteredScenarios.find(s => getScenarioBalance(s) === worstBalance)?.name ?? '');
 
   if (scenarios.length === 0) {
     return (
@@ -232,25 +227,6 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
 
   return (
     <div className="space-y-6">
-      {/* KPI Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: 'Meilleur solde', value: formatCurrency(bestBalance), sub: bestLabel, icon: ArrowUpRight, color: 'text-primary', bg: 'bg-primary/10' },
-          { label: 'Solde le plus bas', value: formatCurrency(worstBalance), sub: worstLabel, icon: ArrowDownRight, color: 'text-destructive', bg: 'bg-destructive/10' },
-          { label: 'Écart max', value: formatCurrency(bestBalance - worstBalance), sub: `${filteredScenarios.length + 1} scénarios`, icon: Minus, color: 'text-warning', bg: 'bg-warning/10' },
-        ].map((kpi, i) => (
-          <motion.div key={kpi.label} className="glass-card p-5 premium-shadow" custom={i} initial="hidden" animate="visible" variants={cardVariants} whileHover={{ y: -2 }}>
-            <div className="flex items-start justify-between mb-3">
-              <span className="text-[13px] font-medium text-muted-foreground">{kpi.label}</span>
-              <div className={`h-8 w-8 rounded-xl ${kpi.bg} flex items-center justify-center`}>
-                <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
-              </div>
-            </div>
-            <div className={`text-2xl font-bold tracking-tight ${kpi.color}`}>{kpi.value}</div>
-            <p className="text-xs text-muted-foreground mt-1">{kpi.sub}</p>
-          </motion.div>
-        ))}
-      </div>
 
       {/* Summary table */}
       <motion.div custom={3} initial="hidden" animate="visible" variants={cardVariants}>

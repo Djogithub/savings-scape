@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Scenario, Charge, Income, PatrimoineItem } from '@/types/finance';
+import { Scenario, Charge, Income, PatrimoineItem, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -315,42 +315,24 @@ export function ScenarioManager({
           </div>
         )}
 
-        {/* Scenario pills - compare view (with drag & drop) */}
+        {/* Scenario toggle checkboxes - compare view */}
         {view === 'compare' && scenarios.length > 0 && (
           <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-[11px] text-muted-foreground mr-1">↕ Glissez pour réorganiser</span>
-            {effectiveOrder.map((id) => {
-              const isActual = id === '__actual__';
-              const scenario = isActual ? null : scenarios.find(s => s.id === id);
-              const label = isActual ? 'Actuel' : scenario?.name;
-              if (!label) return null;
-              const isSelected = isActual || selectedScenarios.includes(id);
-              const color = colorMap[id] || softActualColor;
-
+            {scenarios.map((s) => {
+              const isSelected = selectedScenarios.includes(s.id);
               return (
-                <div
-                  key={id}
-                  draggable
-                  onDragStart={() => handleDragStart(id)}
-                  onDragOver={(e) => handleDragOver(e, id)}
-                  onDragEnd={handleDragEnd}
-                  className={`inline-flex items-center gap-1.5 cursor-grab active:cursor-grabbing transition-all ${
-                    draggedItem === id ? 'opacity-50' : ''
+                <motion.button
+                  key={s.id}
+                  onClick={() => toggleScenario(s.id)}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
+                    isSelected ? 'bg-card border-border shadow-sm' : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
                   }`}
+                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                 >
-                  <motion.button
-                    onClick={() => !isActual && toggleScenario(id)}
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
-                      isSelected ? 'bg-card border-border shadow-sm' : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
-                    }`}
-                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  >
-                    <GripVertical className="h-3 w-3 text-muted-foreground/50" />
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-                    {label}
-                    {isSelected && !isActual && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-                  </motion.button>
-                </div>
+                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colorMap[s.id] || softActualColor }} />
+                  {s.name}
+                  {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                </motion.button>
               );
             })}
           </div>
@@ -359,7 +341,65 @@ export function ScenarioManager({
 
       {/* Comparison view */}
       {view === 'compare' && (
-        <div className="pt-4">
+        <div className="pt-4 space-y-6">
+          {/* Draggable scenario cards with pie chart + key insight */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {effectiveOrder.map((id) => {
+              const isActual = id === '__actual__';
+              const scenario = isActual ? null : scenarios.find(s => s.id === id);
+              if (!isActual && (!scenario || !selectedScenarios.includes(id))) return null;
+              const label = isActual ? 'Actuel' : scenario!.name;
+              const charges = isActual ? actualCharges : scenario!.charges;
+              const incomes = isActual ? actualIncomes : scenario!.incomes;
+              const totalCharges = getCurrentMonthChargesTotal(charges);
+              const totalIncomes = getCurrentMonthIncomesTotal(incomes);
+              const balance = totalIncomes - totalCharges;
+              const color = colorMap[id] || softActualColor;
+
+              // Compute key insight vs actual
+              const actualBal = getCurrentMonthIncomesTotal(actualIncomes) - getCurrentMonthChargesTotal(actualCharges);
+              const diff = balance - actualBal;
+              let insight = '';
+              let insightColor = 'text-muted-foreground';
+              if (isActual) {
+                insight = 'Situation de référence';
+              } else if (diff > 0) {
+                insight = `+${diff.toLocaleString('fr-FR')} €/mois vs actuel`;
+                insightColor = 'text-primary';
+              } else if (diff < 0) {
+                insight = `${diff.toLocaleString('fr-FR')} €/mois vs actuel`;
+                insightColor = 'text-destructive';
+              } else {
+                insight = 'Identique à la situation actuelle';
+              }
+
+              return (
+                <motion.div
+                  key={id}
+                  draggable
+                  onDragStart={() => handleDragStart(id)}
+                  onDragOver={(e) => handleDragOver(e, id)}
+                  onDragEnd={handleDragEnd}
+                  className={`glass-card p-4 cursor-grab active:cursor-grabbing transition-all ${
+                    draggedItem === id ? 'opacity-50 scale-95' : ''
+                  }`}
+                  whileHover={{ y: -2 }}
+                  layout
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                    <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                    <span className="text-sm font-semibold truncate">{label}</span>
+                  </div>
+                  <ScenarioPieChart charges={charges} incomes={incomes} bare />
+                  <div className={`mt-3 text-xs font-medium text-center ${insightColor}`}>
+                    {insight}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
           <ScenarioComparison
             scenarios={scenarios}
             actualCharges={actualCharges}
