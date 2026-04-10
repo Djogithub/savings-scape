@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useFinanceData, exportData, importData } from '@/hooks/useFinanceData';
 import { useScenarios } from '@/hooks/useScenarios';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { SummaryCards } from '@/components/SummaryCards';
 import { ChargeList } from '@/components/ChargeList';
@@ -130,9 +130,6 @@ const Index = () => {
           <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
           <div className="flex-1 flex flex-col min-w-0">
-            <div className="px-6 pt-2">
-              <SidebarTrigger />
-            </div>
 
             <main className="flex-1 px-6 py-8 space-y-8 max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
