@@ -243,6 +243,7 @@ const Index = () => {
             </AnimatePresence>
           </main>
         </div>
+        </div>
       </div>
     </SidebarProvider>
   );
