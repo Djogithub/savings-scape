@@ -100,11 +100,6 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
   const allColors = effectiveOrder.map(id => colorMap[id] || softActualColor);
   const allNames = effectiveOrder.map(id => id === '__actual__' ? 'Actuel' : (filteredScenarios.find(s => s.id === id)?.name ?? ''));
 
-  const allBalances = [actualBalance, ...filteredScenarios.map(s => getScenarioBalance(s))];
-  const bestBalance = Math.max(...allBalances);
-  const worstBalance = Math.min(...allBalances);
-  const bestLabel = bestBalance === actualBalance ? 'Actuel' : (filteredScenarios.find(s => getScenarioBalance(s) === bestBalance)?.name ?? '');
-  const worstLabel = worstBalance === actualBalance ? 'Actuel' : (filteredScenarios.find(s => getScenarioBalance(s) === worstBalance)?.name ?? '');
 
   if (scenarios.length === 0) {
     return (
