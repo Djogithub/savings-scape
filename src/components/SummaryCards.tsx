@@ -5,6 +5,7 @@ interface SummaryCardsProps {
   charges: Charge[];
   incomes: Income[];
   compact?: boolean;
+  grid2x2?: boolean;
 }
 
 function formatCurrency(n: number) {

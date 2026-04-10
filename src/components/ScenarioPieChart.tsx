@@ -3,6 +3,7 @@ import { Charge, Income, getCurrentMonthChargesTotal, getCurrentMonthIncomesTota
 
 interface ScenarioPieChartProps {
   charges: Charge[];
+  bare?: boolean;
   incomes: Income[];
 }
 
