@@ -1,7 +1,9 @@
-import { ListChecks, PieChart, GitCompare } from 'lucide-react';
+import { ListChecks, PieChart, GitCompare, Plus, Minus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
+  SidebarHeader,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -23,12 +25,17 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const collapsed = state === 'collapsed';
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/40 !top-[65px] !h-[calc(100vh-65px)]">
-      <SidebarContent className="pt-4">
+      <SidebarHeader className="flex items-center px-2 py-2">
+        <Button variant="ghost" size="icon" onClick={toggleSidebar} className="h-8 w-8">
+          {collapsed ? <Plus className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+        </Button>
+      </SidebarHeader>
+      <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
