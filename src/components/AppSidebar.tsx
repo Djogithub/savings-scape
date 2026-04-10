@@ -46,7 +46,11 @@ export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
                     onClick={() => onTabChange(item.value)}
                     isActive={activeTab === item.value}
                     tooltip={item.title}
-                    className="cursor-pointer"
+                    className={`cursor-pointer transition-colors ${
+                      activeTab === item.value
+                        ? 'bg-primary/10 text-primary font-semibold border-l-2 border-primary rounded-l-none'
+                        : 'hover:bg-muted/50'
+                    }`}
                   >
                     <item.icon className="h-4 w-4" />
                     {!collapsed && <span>{item.title}</span>}
