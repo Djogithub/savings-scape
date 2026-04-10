@@ -32,37 +32,43 @@ export function ScenarioPieChart({ charges, incomes, bare = false }: ScenarioPie
     Solde: COLORS[2],
   };
 
+  const chart = (
+    <ResponsiveContainer width="100%" height={260}>
+      <PieChart>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={60}
+          outerRadius={90}
+          paddingAngle={3}
+          dataKey="value"
+          stroke="none"
+        >
+          {data.map((entry) => (
+            <Cell key={entry.name} fill={colorMap[entry.name]} />
+          ))}
+        </Pie>
+        <Tooltip
+          formatter={(value: number) => `${value.toLocaleString('fr-FR')} €`}
+          contentStyle={{
+            borderRadius: '8px',
+            border: '1px solid hsl(var(--border))',
+            background: 'hsl(var(--popover))',
+            color: 'hsl(var(--popover-foreground))',
+          }}
+        />
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+
+  if (bare) return chart;
+
   return (
     <div className="rounded-xl border bg-card p-4">
       <h3 className="text-sm font-semibold mb-3">Répartition mensuelle</h3>
-      <ResponsiveContainer width="100%" height={260}>
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={60}
-            outerRadius={90}
-            paddingAngle={3}
-            dataKey="value"
-            stroke="none"
-          >
-            {data.map((entry) => (
-              <Cell key={entry.name} fill={colorMap[entry.name]} />
-            ))}
-          </Pie>
-          <Tooltip
-            formatter={(value: number) => `${value.toLocaleString('fr-FR')} €`}
-            contentStyle={{
-              borderRadius: '8px',
-              border: '1px solid hsl(var(--border))',
-              background: 'hsl(var(--popover))',
-              color: 'hsl(var(--popover-foreground))',
-            }}
-          />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
+      {chart}
     </div>
   );
 }

@@ -400,9 +400,17 @@ export function ScenarioManager({
                 transition={{ duration: 0.3 }}
                 className="space-y-5"
               >
-                <SummaryCards charges={activeScenario.charges} incomes={activeScenario.incomes} compact />
-
-                <ScenarioPieChart charges={activeScenario.charges} incomes={activeScenario.incomes} />
+                <div className="rounded-xl border bg-card p-4">
+                  <h3 className="text-sm font-semibold mb-3">Répartition mensuelle</h3>
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="w-full md:w-1/2">
+                      <ScenarioPieChart charges={activeScenario.charges} incomes={activeScenario.incomes} bare />
+                    </div>
+                    <div className="w-full md:w-1/2 flex items-center">
+                      <SummaryCards charges={activeScenario.charges} incomes={activeScenario.incomes} compact grid2x2 />
+                    </div>
+                  </div>
+                </div>
 
                 {/* Charges collapsible */}
                 <Collapsible defaultOpen>
