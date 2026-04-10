@@ -12,7 +12,7 @@ function formatCurrency(n: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
 }
 
-export function SummaryCards({ charges, incomes, compact = false }: SummaryCardsProps) {
+export function SummaryCards({ charges, incomes, compact = false, grid2x2 = false }: SummaryCardsProps) {
   const totalCharges = getCurrentMonthChargesTotal(charges);
   const totalIncomes = getCurrentMonthIncomesTotal(incomes);
   const solde = totalIncomes - totalCharges;

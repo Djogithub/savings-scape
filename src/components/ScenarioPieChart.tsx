@@ -13,7 +13,7 @@ const COLORS = [
   'hsl(var(--accent))',
 ];
 
-export function ScenarioPieChart({ charges, incomes }: ScenarioPieChartProps) {
+export function ScenarioPieChart({ charges, incomes, bare = false }: ScenarioPieChartProps) {
   const totalIncomes = getCurrentMonthIncomesTotal(incomes);
   const totalCharges = getCurrentMonthChargesTotal(charges);
   const solde = Math.max(0, totalIncomes - totalCharges);
