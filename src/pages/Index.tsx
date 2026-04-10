@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import { useFinanceData, exportData, importData } from '@/hooks/useFinanceData';
 import { useScenarios } from '@/hooks/useScenarios';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
 import { SummaryCards } from '@/components/SummaryCards';
 import { ChargeList } from '@/components/ChargeList';
 import { IncomeList } from '@/components/IncomeList';
@@ -15,7 +16,7 @@ import { PatrimoineForm } from '@/components/PatrimoineForm';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 import { Button } from '@/components/ui/button';
-import { ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet, ChevronDown } from 'lucide-react';
+import { Download, Upload, Sun, Moon, Wallet, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { useSkin } from '@/hooks/useSkin';
