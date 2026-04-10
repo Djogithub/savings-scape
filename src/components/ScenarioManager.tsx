@@ -13,6 +13,7 @@ import { IncomeForm } from './IncomeForm';
 import { PatrimoineList } from './PatrimoineList';
 import { PatrimoineForm } from './PatrimoineForm';
 import { SummaryCards } from './SummaryCards';
+import { ScenarioPieChart } from './ScenarioPieChart';
 import { ScenarioComparison } from './ScenarioComparison';
 import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown, FileStack, GripVertical, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -400,6 +401,8 @@ export function ScenarioManager({
                 className="space-y-5"
               >
                 <SummaryCards charges={activeScenario.charges} incomes={activeScenario.incomes} compact />
+
+                <ScenarioPieChart charges={activeScenario.charges} incomes={activeScenario.incomes} />
 
                 {/* Charges collapsible */}
                 <Collapsible defaultOpen>
