@@ -7,11 +7,11 @@ interface ScenarioPieChartProps {
   incomes: Income[];
 }
 
-const COLORS = [
-  'hsl(var(--accent))',
-  'hsl(var(--destructive))',
-  'hsl(var(--primary))',
-];
+const CHART_COLORS: Record<string, string> = {
+  Revenus: 'hsl(217 91% 60%)',   // bleu
+  Charges: 'hsl(0 84% 60%)',     // rouge
+  Solde: 'hsl(142 71% 45%)',     // vert
+};
 
 export function ScenarioPieChart({ charges, incomes, bare = false }: ScenarioPieChartProps) {
   const totalIncomes = getCurrentMonthIncomesTotal(incomes);
@@ -26,11 +26,7 @@ export function ScenarioPieChart({ charges, incomes, bare = false }: ScenarioPie
 
   if (data.length === 0) return null;
 
-  const colorMap: Record<string, string> = {
-    Revenus: COLORS[0],
-    Charges: COLORS[1],
-    Solde: COLORS[2],
-  };
+  const colorMap = CHART_COLORS;
 
   const chart = (
     <ResponsiveContainer width="100%" height={260}>
