@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button';
 import { ListChecks, GitCompare, PieChart, Download, Upload, Sun, Moon, Wallet, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
+import { useSkin } from '@/hooks/useSkin';
+import { SkinSelector } from '@/components/SkinSelector';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const tabContentVariants = {
@@ -52,6 +54,7 @@ const Index = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
+  const { skin, setSkin } = useSkin();
   const [activeTab, setActiveTab] = useState('actual');
 
   useEffect(() => {
@@ -106,6 +109,7 @@ const Index = () => {
             </Button>
             <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
             <div className="w-px h-5 bg-border mx-1" />
+            <SkinSelector skin={skin} setSkin={setSkin} />
             <motion.div whileTap={{ scale: 0.9, rotate: 180 }} transition={{ duration: 0.3 }}>
               <Button
                 variant="ghost" size="icon"
