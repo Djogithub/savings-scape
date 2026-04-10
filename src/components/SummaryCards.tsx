@@ -5,13 +5,14 @@ interface SummaryCardsProps {
   charges: Charge[];
   incomes: Income[];
   compact?: boolean;
+  grid2x2?: boolean;
 }
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
 }
 
-export function SummaryCards({ charges, incomes, compact = false }: SummaryCardsProps) {
+export function SummaryCards({ charges, incomes, compact = false, grid2x2 = false }: SummaryCardsProps) {
   const totalCharges = getCurrentMonthChargesTotal(charges);
   const totalIncomes = getCurrentMonthIncomesTotal(incomes);
   const solde = totalIncomes - totalCharges;
@@ -57,7 +58,7 @@ export function SummaryCards({ charges, incomes, compact = false }: SummaryCards
   ];
 
   return (
-    <div className={`grid gap-3 ${compact ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'}`}>
+    <div className={`grid gap-3 ${grid2x2 ? 'grid-cols-2' : compact ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'}`}>
       {cards.map((card) => (
         <div
           key={card.label}
