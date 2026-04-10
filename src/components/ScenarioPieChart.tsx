@@ -44,6 +44,9 @@ export function ScenarioPieChart({ charges, incomes, bare = false }: ScenarioPie
           paddingAngle={3}
           dataKey="value"
           stroke="none"
+          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+          labelLine={false}
+          fontSize={11}
         >
           {data.map((entry) => (
             <Cell key={entry.name} fill={colorMap[entry.name]} />
