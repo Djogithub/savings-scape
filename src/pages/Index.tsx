@@ -91,7 +91,6 @@ const Index = () => {
           <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
             <div className="px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <SidebarTrigger className="mr-1" />
                 <motion.div
                   className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center"
                   whileHover={{ scale: 1.1, rotate: 5 }}
@@ -129,6 +128,10 @@ const Index = () => {
               </div>
             </div>
           </header>
+
+          <div className="px-6 pt-2">
+            <SidebarTrigger />
+          </div>
 
           <main className="flex-1 px-6 py-8 space-y-8 max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
