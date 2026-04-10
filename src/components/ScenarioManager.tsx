@@ -341,7 +341,65 @@ export function ScenarioManager({
 
       {/* Comparison view */}
       {view === 'compare' && (
-        <div className="pt-4">
+        <div className="pt-4 space-y-6">
+          {/* Draggable scenario cards with pie chart + key insight */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {effectiveOrder.map((id) => {
+              const isActual = id === '__actual__';
+              const scenario = isActual ? null : scenarios.find(s => s.id === id);
+              if (!isActual && (!scenario || !selectedScenarios.includes(id))) return null;
+              const label = isActual ? 'Actuel' : scenario!.name;
+              const charges = isActual ? actualCharges : scenario!.charges;
+              const incomes = isActual ? actualIncomes : scenario!.incomes;
+              const totalCharges = getCurrentMonthChargesTotal(charges);
+              const totalIncomes = getCurrentMonthIncomesTotal(incomes);
+              const balance = totalIncomes - totalCharges;
+              const color = colorMap[id] || softActualColor;
+
+              // Compute key insight vs actual
+              const actualBal = getCurrentMonthIncomesTotal(actualIncomes) - getCurrentMonthChargesTotal(actualCharges);
+              const diff = balance - actualBal;
+              let insight = '';
+              let insightColor = 'text-muted-foreground';
+              if (isActual) {
+                insight = 'Situation de référence';
+              } else if (diff > 0) {
+                insight = `+${diff.toLocaleString('fr-FR')} €/mois vs actuel`;
+                insightColor = 'text-primary';
+              } else if (diff < 0) {
+                insight = `${diff.toLocaleString('fr-FR')} €/mois vs actuel`;
+                insightColor = 'text-destructive';
+              } else {
+                insight = 'Identique à la situation actuelle';
+              }
+
+              return (
+                <motion.div
+                  key={id}
+                  draggable
+                  onDragStart={() => handleDragStart(id)}
+                  onDragOver={(e) => handleDragOver(e, id)}
+                  onDragEnd={handleDragEnd}
+                  className={`glass-card p-4 cursor-grab active:cursor-grabbing transition-all ${
+                    draggedItem === id ? 'opacity-50 scale-95' : ''
+                  }`}
+                  whileHover={{ y: -2 }}
+                  layout
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                    <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                    <span className="text-sm font-semibold truncate">{label}</span>
+                  </div>
+                  <ScenarioPieChart charges={charges} incomes={incomes} bare />
+                  <div className={`mt-3 text-xs font-medium text-center ${insightColor}`}>
+                    {insight}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
           <ScenarioComparison
             scenarios={scenarios}
             actualCharges={actualCharges}
