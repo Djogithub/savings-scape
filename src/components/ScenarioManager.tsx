@@ -13,6 +13,7 @@ import { IncomeForm } from './IncomeForm';
 import { PatrimoineList } from './PatrimoineList';
 import { PatrimoineForm } from './PatrimoineForm';
 import { SummaryCards } from './SummaryCards';
+import { ScenarioPieChart } from './ScenarioPieChart';
 import { ScenarioComparison } from './ScenarioComparison';
 import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown, FileStack, GripVertical, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
