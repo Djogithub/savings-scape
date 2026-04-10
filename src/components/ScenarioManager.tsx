@@ -401,6 +401,8 @@ export function ScenarioManager({
               >
                 <SummaryCards charges={activeScenario.charges} incomes={activeScenario.incomes} compact />
 
+                <ScenarioPieChart charges={activeScenario.charges} incomes={activeScenario.incomes} />
+
                 {/* Charges collapsible */}
                 <Collapsible defaultOpen>
                   <CollapsibleTrigger className="flex items-center justify-between w-full group">
