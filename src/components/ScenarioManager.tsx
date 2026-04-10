@@ -14,7 +14,7 @@ import { PatrimoineList } from './PatrimoineList';
 import { PatrimoineForm } from './PatrimoineForm';
 import { SummaryCards } from './SummaryCards';
 import { ScenarioComparison } from './ScenarioComparison';
-import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown, FileStack, GripVertical } from 'lucide-react';
+import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown, FileStack, GripVertical, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,6 +23,24 @@ const PRESET_COLORS = [
   'hsl(45, 85%, 50%)', 'hsl(280, 60%, 55%)', 'hsl(180, 50%, 45%)',
   'hsl(15, 75%, 55%)', 'hsl(200, 65%, 50%)',
 ];
+
+const SOFT_COLORS = [
+  'hsl(160, 45%, 52%)', 'hsl(220, 55%, 62%)', 'hsl(340, 50%, 62%)',
+  'hsl(45, 70%, 58%)', 'hsl(280, 45%, 62%)', 'hsl(180, 40%, 52%)',
+  'hsl(15, 55%, 60%)', 'hsl(200, 50%, 58%)',
+];
+
+function getSoftColor(scenario: Scenario, index: number): string {
+  const color = scenario.color;
+  if (color) {
+    const hueMatch = color.match(/hsl\((\d+)/);
+    if (hueMatch) {
+      const hue = parseInt(hueMatch[1]);
+      return `hsl(${hue}, 45%, 60%)`;
+    }
+  }
+  return SOFT_COLORS[index % SOFT_COLORS.length];
+}
 
 interface ScenarioManagerProps {
   scenarios: Scenario[];
@@ -63,7 +81,40 @@ export function ScenarioManager({
   const [renameValue, setRenameValue] = useState('');
   const [view, setView] = useState<'detail' | 'compare'>('detail');
 
+  // Compare view state (lifted from ScenarioComparison)
+  const [selectedScenarios, setSelectedScenarios] = useState<string[]>(scenarios.map(s => s.id));
+  const [scenarioOrder, setScenarioOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+
   const activeScenario = scenarios.find(s => s.id === activeScenarioId);
+
+  // Compute effective order for compare view
+  const currentOrder = scenarioOrder.filter(id => id === '__actual__' || scenarios.some(s => s.id === id && selectedScenarios.includes(s.id)));
+  const missingIds = selectedScenarios.filter(id => !currentOrder.includes(id));
+  const effectiveOrder = [...currentOrder, ...missingIds];
+  if (!effectiveOrder.includes('__actual__')) effectiveOrder.unshift('__actual__');
+
+  const softActualColor = 'hsl(160, 45%, 52%)';
+  const colorMap: Record<string, string> = { '__actual__': softActualColor };
+  scenarios.filter(s => selectedScenarios.includes(s.id)).forEach((s, i) => { colorMap[s.id] = getSoftColor(s, i + 1); });
+
+  const toggleScenario = (id: string) => {
+    setSelectedScenarios(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleDragStart = (id: string) => setDraggedItem(id);
+  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedItem || draggedItem === targetId) return;
+    const newOrder = [...effectiveOrder];
+    const fromIdx = newOrder.indexOf(draggedItem);
+    const toIdx = newOrder.indexOf(targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    newOrder.splice(fromIdx, 1);
+    newOrder.splice(toIdx, 0, draggedItem);
+    setScenarioOrder(newOrder);
+  };
+  const handleDragEnd = () => setDraggedItem(null);
 
   const handleCreate = () => {
     if (!newName.trim()) return;
@@ -88,6 +139,8 @@ export function ScenarioManager({
     setActiveScenarioId(id);
     setNewName('');
     setCreateOpen(false);
+    setSelectedScenarios(prev => [...prev, id]);
+    setScenarioOrder(prev => [...prev, id]);
     toast.success(`Scénario "${newName.trim()}" créé`);
   };
 
@@ -184,7 +237,7 @@ export function ScenarioManager({
           </Dialog>
         </div>
 
-        {/* Scenario tabs (detail & compare views) */}
+        {/* Scenario tabs - detail view */}
         {view === 'detail' && scenarios.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {scenarios.map((s) => {
@@ -260,6 +313,47 @@ export function ScenarioManager({
             })}
           </div>
         )}
+
+        {/* Scenario pills - compare view (with drag & drop) */}
+        {view === 'compare' && scenarios.length > 0 && (
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-[11px] text-muted-foreground mr-1">↕ Glissez pour réorganiser</span>
+            {effectiveOrder.map((id) => {
+              const isActual = id === '__actual__';
+              const scenario = isActual ? null : scenarios.find(s => s.id === id);
+              const label = isActual ? 'Actuel' : scenario?.name;
+              if (!label) return null;
+              const isSelected = isActual || selectedScenarios.includes(id);
+              const color = colorMap[id] || softActualColor;
+
+              return (
+                <div
+                  key={id}
+                  draggable
+                  onDragStart={() => handleDragStart(id)}
+                  onDragOver={(e) => handleDragOver(e, id)}
+                  onDragEnd={handleDragEnd}
+                  className={`inline-flex items-center gap-1.5 cursor-grab active:cursor-grabbing transition-all ${
+                    draggedItem === id ? 'opacity-50' : ''
+                  }`}
+                >
+                  <motion.button
+                    onClick={() => !isActual && toggleScenario(id)}
+                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
+                      isSelected ? 'bg-card border-border shadow-sm' : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
+                    }`}
+                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  >
+                    <GripVertical className="h-3 w-3 text-muted-foreground/50" />
+                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+                    {label}
+                    {isSelected && !isActual && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                  </motion.button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Comparison view */}
@@ -269,6 +363,8 @@ export function ScenarioManager({
             scenarios={scenarios}
             actualCharges={actualCharges}
             actualIncomes={actualIncomes}
+            selectedScenarios={selectedScenarios}
+            effectiveOrder={effectiveOrder}
           />
         </div>
       )}
