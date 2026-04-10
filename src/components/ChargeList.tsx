@@ -174,8 +174,9 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                       transition={{ duration: 0.25, ease: 'easeInOut' }}
                       className="overflow-hidden"
                     >
-                      <div className="px-3 pb-3 pt-1 border-t border-border/40">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <div className="px-4 pb-4 pt-3 border-t border-border/40 space-y-3">
+                        {/* Tags */}
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${getCategoryColor(charge.category)}`}>
                             {categoryLabel}
                           </Badge>
@@ -183,24 +184,27 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                             {CHARGE_TYPE_LABELS[charge.type]}
                           </Badge>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap mb-2">
+
+                        {/* Grid content */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <div className="text-[11px] text-muted-foreground mb-0.5">Montant</div>
+                            <div className="font-bold text-base tabular-nums">{formatCurrency(charge.amount)}</div>
+                            <div className="text-[10px] text-muted-foreground">{charge.type === 'seasonal' ? 'moy./mois' : '/mois'}</div>
+                          </div>
+
                           {charge.startDate && (
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {new Date(charge.startDate).toLocaleDateString('fr-FR')}
-                              {charge.endDate && ` → ${new Date(charge.endDate).toLocaleDateString('fr-FR')}`}
-                            </span>
+                            <div>
+                              <div className="text-[11px] text-muted-foreground mb-0.5">Période</div>
+                              <div className="flex items-center gap-1 text-xs">
+                                <Calendar className="h-3 w-3 text-muted-foreground" />
+                                <span>{new Date(charge.startDate).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}</span>
+                                {charge.endDate && <span>→ {new Date(charge.endDate).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}</span>}
+                              </div>
+                            </div>
                           )}
-                          {charge.type === 'seasonal' && charge.seasonalAmounts && (
-                            <span className="flex items-center gap-1 flex-wrap">
-                              {(Object.entries(charge.seasonalAmounts) as [Season, number][]).map(([season, amt]) => (
-                                <span key={season} className="inline-flex items-center gap-0.5 bg-muted/60 px-1.5 py-0.5 rounded text-[10px]">
-                                  {SEASON_LABELS[season].split(' ')[0]}: {formatCurrency(amt)}
-                                </span>
-                              ))}
-                            </span>
-                          )}
-                          {charge.totalAmount && (() => {
+
+                          {charge.totalAmount != null && (() => {
                             let remaining = charge.totalAmount - (charge.paidAmount ?? 0);
                             if (charge.startDate && charge.amount > 0) {
                               const start = new Date(charge.startDate);
@@ -209,33 +213,47 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                               remaining = Math.max(0, charge.totalAmount - (charge.paidAmount ?? 0) - (monthsElapsed * charge.amount));
                             }
                             return (
-                              <span className="flex items-center gap-1">
-                                <CreditCard className="h-3 w-3" />
-                                Reste: {formatCurrency(remaining)}
-                              </span>
+                              <div>
+                                <div className="text-[11px] text-muted-foreground mb-0.5">Capital restant</div>
+                                <div className="flex items-center gap-1 text-xs font-medium">
+                                  <CreditCard className="h-3 w-3 text-muted-foreground" />
+                                  {formatCurrency(remaining)}
+                                </div>
+                              </div>
                             );
                           })()}
+
                           {charge.interestRate != null && (
-                            <span className="text-warning font-medium">Taux: {charge.interestRate}%</span>
+                            <div>
+                              <div className="text-[11px] text-muted-foreground mb-0.5">Taux</div>
+                              <div className="text-xs font-medium text-warning">{charge.interestRate}%</div>
+                            </div>
                           )}
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-bold text-base tabular-nums">{formatCurrency(charge.amount)}</div>
-                            <div className="text-[11px] text-muted-foreground">{charge.type === 'seasonal' ? 'moy./mois' : '/mois'}</div>
+
+                        {/* Seasonal amounts */}
+                        {charge.type === 'seasonal' && charge.seasonalAmounts && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {(Object.entries(charge.seasonalAmounts) as [Season, number][]).map(([season, amt]) => (
+                              <span key={season} className="inline-flex items-center gap-0.5 bg-muted/60 px-2 py-1 rounded-lg text-[10px]">
+                                {SEASON_LABELS[season].split(' ')[0]}: {formatCurrency(amt)}
+                              </span>
+                            ))}
                           </div>
-                          <div className="flex gap-0.5">
-                            <ChargeForm
-                              editCharge={charge}
-                              onSubmit={onAdd}
-                              onUpdate={onUpdate}
-                              isProjection={isProjection}
-                              trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
-                            />
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(charge.id)}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex justify-end gap-1 pt-1">
+                          <ChargeForm
+                            editCharge={charge}
+                            onSubmit={onAdd}
+                            onUpdate={onUpdate}
+                            isProjection={isProjection}
+                            trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
+                          />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(charge.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </div>
                     </motion.div>

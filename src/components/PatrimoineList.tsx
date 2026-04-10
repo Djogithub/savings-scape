@@ -186,37 +186,53 @@ export function PatrimoineList({ items, onDelete, onUpdate, onAdd, storageKey = 
                       transition={{ duration: 0.25, ease: 'easeInOut' }}
                       className="overflow-hidden"
                     >
-                      <div className="px-3 pb-3 pt-1 border-t border-border/40">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <div className="px-4 pb-4 pt-3 border-t border-border/40 space-y-3">
+                        {/* Tags */}
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="secondary" className={`text-[11px] font-medium border-0 ${getCategoryColor(item.category)}`}>
                             {PATRIMOINE_CATEGORY_LABELS[item.category]}
                           </Badge>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap mb-2">
-                          <span>Valeur initiale : {formatCurrency(item.currentValue)}</span>
                           {item.annualGrowthRate > 0 && (
-                            <span className="text-primary font-medium">+{item.annualGrowthRate}%/an</span>
-                          )}
-                          {gain > 0 && (
-                            <span className="text-primary">+{formatCurrency(gain)} depuis saisie</span>
+                            <Badge variant="outline" className="text-[11px] font-normal text-primary border-primary/30">
+                              +{item.annualGrowthRate}%/an
+                            </Badge>
                           )}
                         </div>
-                        <div className="flex items-center justify-between">
+
+                        {/* Grid content */}
+                        <div className="grid grid-cols-2 gap-3">
                           <div>
+                            <div className="text-[11px] text-muted-foreground mb-0.5">Valeur estimée</div>
                             <div className="font-bold text-base tabular-nums text-primary">{formatCurrency(projected)}</div>
-                            <div className="text-[11px] text-muted-foreground">valeur estimée</div>
                           </div>
-                          <div className="flex gap-0.5">
-                            <PatrimoineForm
-                              editItem={item}
-                              onSubmit={onAdd}
-                              onUpdate={onUpdate}
-                              trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
-                            />
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(item.id)}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
+
+                          <div>
+                            <div className="text-[11px] text-muted-foreground mb-0.5">Valeur initiale</div>
+                            <div className="text-xs font-medium">{formatCurrency(item.currentValue)}</div>
                           </div>
+
+                          {gain > 0 && (
+                            <div>
+                              <div className="text-[11px] text-muted-foreground mb-0.5">Plus-value</div>
+                              <div className="flex items-center gap-1 text-xs font-medium text-primary">
+                                <TrendingUp className="h-3 w-3" />
+                                +{formatCurrency(gain)}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex justify-end gap-1 pt-1">
+                          <PatrimoineForm
+                            editItem={item}
+                            onSubmit={onAdd}
+                            onUpdate={onUpdate}
+                            trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
+                          />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(item.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </div>
                     </motion.div>

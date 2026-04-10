@@ -148,37 +148,47 @@ export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = 
                       transition={{ duration: 0.25, ease: 'easeInOut' }}
                       className="overflow-hidden"
                     >
-                      <div className="px-3 pb-3 pt-1 border-t border-border/40">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="px-4 pb-4 pt-3 border-t border-border/40 space-y-3">
+                        {/* Tags */}
+                        <div className="flex items-center gap-2">
                           <Badge variant="secondary" className="text-[11px] font-medium border-0 bg-primary/10 text-primary">
                             {income.isRecurring ? 'Récurrent' : 'Ponctuel'}
                           </Badge>
                         </div>
-                        {income.startDate && (
-                          <div className="text-xs text-muted-foreground mb-2">
-                            {new Date(income.startDate).toLocaleDateString('fr-FR')}
-                            {income.endDate && ` → ${new Date(income.endDate).toLocaleDateString('fr-FR')}`}
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between">
+
+                        {/* Grid content */}
+                        <div className="grid grid-cols-2 gap-3">
                           <div>
+                            <div className="text-[11px] text-muted-foreground mb-0.5">Montant</div>
                             <div className="font-bold text-base tabular-nums text-primary">+{formatCurrency(income.amount)}</div>
-                            <div className="text-[11px] text-muted-foreground">/mois</div>
+                            <div className="text-[10px] text-muted-foreground">/mois</div>
                           </div>
-                          <div className="flex gap-0.5">
-                            {onUpdate && onAdd && (
-                              <IncomeForm
-                                editIncome={income}
-                                onSubmit={onAdd}
-                                onUpdate={onUpdate}
-                                isProjection={isProjection}
-                                trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
-                              />
-                            )}
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(income.id)}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
+
+                          {income.startDate && (
+                            <div>
+                              <div className="text-[11px] text-muted-foreground mb-0.5">Période</div>
+                              <div className="text-xs">
+                                {new Date(income.startDate).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}
+                                {income.endDate && ` → ${new Date(income.endDate).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}`}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex justify-end gap-1 pt-1">
+                          {onUpdate && onAdd && (
+                            <IncomeForm
+                              editIncome={income}
+                              onSubmit={onAdd}
+                              onUpdate={onUpdate}
+                              isProjection={isProjection}
+                              trigger={<Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground"><Edit2 className="h-3.5 w-3.5" /></Button>}
+                            />
+                          )}
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => onDelete(income.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </div>
                     </motion.div>
