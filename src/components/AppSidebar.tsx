@@ -27,7 +27,7 @@ export function AppSidebar({ activeTab, onTabChange }: AppSidebarProps) {
   const collapsed = state === 'collapsed';
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border/40">
+    <Sidebar collapsible="icon" className="border-r border-border/40 top-[var(--header-height)] h-[calc(100vh-var(--header-height))]">
       <SidebarContent className="pt-4">
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
