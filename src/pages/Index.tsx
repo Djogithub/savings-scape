@@ -84,56 +84,57 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
-            <div className="px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <motion.div
-                  className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: 'spring', stiffness: 400 }}
-                >
-                  <Wallet className="h-5 w-5 text-primary" />
-                </motion.div>
-                <div>
-                  <h1 className="text-xl font-bold tracking-tight">MonBudget</h1>
-                  <p className="text-[11px] text-muted-foreground leading-none">Gestion de comptes personnels</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={handleExport}>
-                  <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">Exporter</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="h-4 w-4" />
-                  <span className="hidden sm:inline">Importer</span>
-                </Button>
-                <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-                <div className="w-px h-5 bg-border mx-1" />
-                <SkinSelector skin={skin} setSkin={setSkin} />
-                <motion.div whileTap={{ scale: 0.9, rotate: 180 }} transition={{ duration: 0.3 }}>
-                  <Button
-                    variant="ghost" size="icon"
-                    className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground"
-                    onClick={toggleTheme}
-                    title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}
-                  >
-                    {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                  </Button>
-                </motion.div>
+      <div className="min-h-screen flex flex-col w-full bg-background">
+        <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
+          <div className="px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <motion.div
+                className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: 'spring', stiffness: 400 }}
+              >
+                <Wallet className="h-5 w-5 text-primary" />
+              </motion.div>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight">MonBudget</h1>
+                <p className="text-[11px] text-muted-foreground leading-none">Gestion de comptes personnels</p>
               </div>
             </div>
-          </header>
-
-          <div className="px-6 pt-2">
-            <SidebarTrigger />
+            <div className="flex items-center gap-1.5">
+              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={handleExport}>
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Exporter</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-4 w-4" />
+                <span className="hidden sm:inline">Importer</span>
+              </Button>
+              <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+              <div className="w-px h-5 bg-border mx-1" />
+              <SkinSelector skin={skin} setSkin={setSkin} />
+              <motion.div whileTap={{ scale: 0.9, rotate: 180 }} transition={{ duration: 0.3 }}>
+                <Button
+                  variant="ghost" size="icon"
+                  className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground"
+                  onClick={toggleTheme}
+                  title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}
+                >
+                  {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                </Button>
+              </motion.div>
+            </div>
           </div>
+        </header>
 
-          <main className="flex-1 px-6 py-8 space-y-8 max-w-7xl mx-auto w-full">
+        <div className="flex-1 flex w-full">
+          <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+
+          <div className="flex-1 flex flex-col min-w-0">
+            <div className="px-6 pt-2">
+              <SidebarTrigger />
+            </div>
+
+            <main className="flex-1 px-6 py-8 space-y-8 max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
               <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
                 {activeTab === 'actual' && (
@@ -241,6 +242,7 @@ const Index = () => {
               </motion.div>
             </AnimatePresence>
           </main>
+        </div>
         </div>
       </div>
     </SidebarProvider>
