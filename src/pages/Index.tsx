@@ -3,6 +3,7 @@ import { useFinanceData, exportData, importData } from '@/hooks/useFinanceData';
 import { useScenarios } from '@/hooks/useScenarios';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
+import { MobileNav } from '@/components/MobileNav';
 import { SummaryCards } from '@/components/SummaryCards';
 import { ChargeList } from '@/components/ChargeList';
 import { IncomeList } from '@/components/IncomeList';
@@ -131,7 +132,7 @@ const Index = () => {
 
           <div className="flex-1 flex flex-col min-w-0">
 
-            <main className="flex-1 px-6 py-8 space-y-8 max-w-7xl mx-auto w-full">
+            <main className="flex-1 px-6 py-8 pb-20 md:pb-8 space-y-8 max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
               <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
                 {activeTab === 'actual' && (
@@ -242,6 +243,7 @@ const Index = () => {
         </div>
         </div>
       </div>
+        <MobileNav activeTab={activeTab} onTabChange={setActiveTab} />
     </SidebarProvider>
   );
 };
