@@ -111,9 +111,8 @@ export function getChargeAmountForMonth(charge: Charge, year: number, month: num
     return 0;
   }
   // Seasonal
-  if (charge.type === 'seasonal' && charge.seasonalAmounts) {
-    const season = getSeasonForMonth(month);
-    return charge.seasonalAmounts[season];
+  if (charge.type === 'seasonal' && charge.seasonalPeriods) {
+    return getSeasonalAmountForMonth(charge.seasonalPeriods, month + 1); // month is 0-indexed
   }
   return charge.amount;
 }
@@ -197,7 +196,8 @@ export interface Charge {
   isProjection?: boolean;
   notes?: string;
   originId?: string;
-  seasonalAmounts?: SeasonalAmounts;
+  seasonalAmounts?: Record<string, number>; // legacy
+  seasonalPeriods?: SeasonPeriod[];
 }
 
 export interface Income {
