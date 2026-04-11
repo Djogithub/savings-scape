@@ -204,39 +204,90 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                             </div>
                           )}
 
-                          {charge.totalAmount != null && (() => {
-                            let capitalRemaining = charge.totalAmount - (charge.paidAmount ?? 0);
-                            let remainingMonths = 0;
-                            if (charge.startDate && charge.amount > 0) {
+                          {charge.totalAmount != null && charge.amount > 0 && (() => {
+                            const P = charge.totalAmount; // montant emprunté
+                            const M = charge.amount; // mensualité
+                            const r = (charge.interestRate ?? 0) / 100 / 12; // taux mensuel
+
+                            // Nombre de mois écoulés depuis le début
+                            let monthsElapsed = 0;
+                            if (charge.startDate) {
                               const start = new Date(charge.startDate);
                               const now = new Date();
-                              const monthsElapsed = Math.max(0, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()));
-                              capitalRemaining = Math.max(0, charge.totalAmount - (charge.paidAmount ?? 0) - (monthsElapsed * charge.amount));
-                              if (charge.endDate) {
-                                const end = new Date(charge.endDate);
-                                remainingMonths = Math.max(0, (end.getFullYear() - now.getFullYear()) * 12 + (end.getMonth() - now.getMonth()) + 1);
-                              } else if (charge.amount > 0) {
-                                remainingMonths = Math.ceil(capitalRemaining / charge.amount);
-                              }
+                              monthsElapsed = Math.max(0, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()));
                             }
-                            // Remaining interest: monthly rate * remaining capital over remaining months (simplified linear approx)
-                            const monthlyRate = (charge.interestRate ?? 0) / 100 / 12;
-                            const remainingInterest = monthlyRate > 0 && remainingMonths > 0
-                              ? capitalRemaining * monthlyRate * (remainingMonths + 1) / 2
-                              : 0;
+
+                            // Nombre total de mensualités du prêt
+                            let totalMonths: number;
+                            if (r > 0) {
+                              // N = -ln(1 - P*r/M) / ln(1+r)
+                              const x = 1 - (P * r) / M;
+                              totalMonths = x > 0 ? Math.ceil(-Math.log(x) / Math.log(1 + r)) : Math.ceil(P / M);
+                            } else {
+                              totalMonths = Math.ceil(P / M);
+                            }
+
+                            const paidMonths = Math.min(monthsElapsed, totalMonths);
+                            const remainingMonths = Math.max(0, totalMonths - paidMonths);
+
+                            // Capital restant dû (formule d'amortissement)
+                            let capitalRemaining: number;
+                            let totalPaidSoFar: number;
+                            let interestPaidSoFar: number;
+                            if (r > 0) {
+                              // CRD = P*(1+r)^n - M*((1+r)^n - 1)/r
+                              const compounded = Math.pow(1 + r, paidMonths);
+                              capitalRemaining = Math.max(0, P * compounded - M * (compounded - 1) / r);
+                              totalPaidSoFar = M * paidMonths;
+                              const capitalPaidSoFar = P - capitalRemaining;
+                              interestPaidSoFar = totalPaidSoFar - capitalPaidSoFar;
+                            } else {
+                              capitalRemaining = Math.max(0, P - M * paidMonths);
+                              totalPaidSoFar = M * paidMonths;
+                              interestPaidSoFar = 0;
+                            }
+
+                            // Intérêts restants = total des paiements restants - capital restant
+                            const totalRemainingPayments = M * remainingMonths;
+                            const remainingInterest = Math.max(0, totalRemainingPayments - capitalRemaining);
                             const totalRemaining = capitalRemaining + remainingInterest;
+                            const capitalPaid = P - capitalRemaining;
+
                             return (
-                              <div>
-                                <div className="text-[11px] text-muted-foreground mb-0.5">Restant à rembourser</div>
-                                <div className="flex items-center gap-1 text-xs font-medium">
-                                  <CreditCard className="h-3 w-3 text-muted-foreground" />
-                                  {formatCurrency(totalRemaining)}
+                              <>
+                                <div>
+                                  <div className="text-[11px] text-muted-foreground mb-0.5">Déjà remboursé</div>
+                                  <div className="text-xs font-medium tabular-nums">{formatCurrency(totalPaidSoFar)}</div>
+                                  <div className="text-[10px] text-muted-foreground mt-0.5">
+                                    {formatCurrency(capitalPaid)} capital
+                                    {interestPaidSoFar > 0 && <> + {formatCurrency(interestPaidSoFar)} intérêts</>}
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground">{paidMonths} / {totalMonths} mois</div>
                                 </div>
-                                <div className="text-[10px] text-muted-foreground mt-0.5">
-                                  {formatCurrency(capitalRemaining)} capital
-                                  {remainingInterest > 0 && <> + {formatCurrency(remainingInterest)} intérêts</>}
+                                <div>
+                                  <div className="text-[11px] text-muted-foreground mb-0.5">Restant à rembourser</div>
+                                  <div className="flex items-center gap-1 text-xs font-medium">
+                                    <CreditCard className="h-3 w-3 text-muted-foreground" />
+                                    {formatCurrency(totalRemaining)}
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground mt-0.5">
+                                    {formatCurrency(capitalRemaining)} capital
+                                    {remainingInterest > 0 && <> + {formatCurrency(remainingInterest)} intérêts</>}
+                                  </div>
                                 </div>
-                              </div>
+                                {/* Progress bar */}
+                                <div className="col-span-2">
+                                  <div className="w-full bg-muted rounded-full h-1.5">
+                                    <div
+                                      className="bg-primary rounded-full h-1.5 transition-all"
+                                      style={{ width: `${Math.min(100, (paidMonths / totalMonths) * 100)}%` }}
+                                    />
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground mt-1">
+                                    {Math.round((paidMonths / totalMonths) * 100)}% remboursé
+                                  </div>
+                                </div>
+                              </>
                             );
                           })()}
 
