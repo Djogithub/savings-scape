@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SEASON_LABELS, Season } from '@/types/finance';
+import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SeasonPeriod } from '@/types/finance';
 import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { getChargeCategoryIcon } from '@/lib/categoryIcons';
 import { Button } from '@/components/ui/button';
