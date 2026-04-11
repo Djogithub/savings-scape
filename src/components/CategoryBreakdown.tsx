@@ -1,4 +1,4 @@
-import { Charge, Income, CATEGORY_LABELS, ChargeCategory, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
+import { Charge, Income, CATEGORY_LABELS, ChargeCategory, getCurrentMonthAllChargesTotal, getCurrentMonthAllIncomesTotal, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
 import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { Badge } from '@/components/ui/badge';
 import { useMemo } from 'react';
@@ -92,8 +92,8 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
     return items;
   }, [incomes, currentYear, currentMonth]);
 
-  const totalCharges = getCurrentMonthChargesTotal(charges);
-  const totalIncomes = getCurrentMonthIncomesTotal(incomes);
+  const totalCharges = getCurrentMonthAllChargesTotal(charges);
+  const totalIncomes = getCurrentMonthAllIncomesTotal(incomes);
 
   return (
     <div className="space-y-6">
