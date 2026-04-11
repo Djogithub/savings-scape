@@ -34,6 +34,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Revenus mensuels',
           value: formatCurrency(recurringIncomes),
+          subtitle: undefined as string | undefined,
           icon: TrendingUp,
           iconBg: 'bg-blue-500/10',
           iconColor: 'text-blue-500',
@@ -42,6 +43,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Charges mensuelles',
           value: formatCurrency(recurringCharges),
+          subtitle: undefined as string | undefined,
           icon: TrendingDown,
           iconBg: 'bg-red-500/10',
           iconColor: 'text-red-500',
@@ -65,6 +67,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Revenus ponctuels',
           value: formatCurrency(oneTimeIncomes),
+          subtitle: undefined as string | undefined,
           icon: Sparkles,
           iconBg: 'bg-emerald-500/10',
           iconColor: 'text-emerald-500',
@@ -73,6 +76,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Charges ponctuelles',
           value: formatCurrency(oneTimeCharges),
+          subtitle: undefined as string | undefined,
           icon: Zap,
           iconBg: 'bg-orange-500/10',
           iconColor: 'text-orange-500',
@@ -81,6 +85,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Solde ponctuel',
           value: formatCurrency(oneTimeBalance),
+          subtitle: undefined as string | undefined,
           icon: Scale,
           iconBg: oneTimeBalance >= 0 ? 'bg-green-500/10' : 'bg-red-500/10',
           iconColor: oneTimeBalance >= 0 ? 'text-green-500' : 'text-red-500',
@@ -99,11 +104,11 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
             {sections.filter(s => !('show' in s) || s.show).length > 1 && (
               <h3 className={`font-semibold text-muted-foreground mb-2 ${compact ? 'text-xs' : 'text-sm'}`}>{section.title}</h3>
             )}
-            <div className={`grid ${grid2x2 ? 'grid-cols-2 gap-2 sm:gap-3' : compact ? 'grid-cols-3 gap-2 sm:gap-3' : 'grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4'}`}>
-              {section.cards.map((card) => (
+            <div className={`grid ${grid2x2 ? 'grid-cols-2 gap-2 sm:gap-3' : compact ? 'grid-cols-2 gap-2 sm:gap-3' : 'grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'}`}>
+              {[section.cards[2], section.cards[0], section.cards[1]].map((card, idx) => (
                 <div
                   key={card.label}
-                  className={`glass-card premium-shadow ${compact ? 'p-3' : 'p-5'}`}
+                  className={`glass-card premium-shadow ${compact ? 'p-3' : 'p-5'} ${idx === 0 ? (grid2x2 ? 'col-span-2' : compact ? 'col-span-2' : 'sm:col-span-2') : ''}`}
                 >
                   <div className={`flex items-start justify-between ${compact ? 'mb-2' : 'mb-4'}`}>
                     <span className={`font-medium text-muted-foreground ${compact ? 'text-[11px]' : 'text-[13px]'}`}>{card.label}</span>
@@ -114,7 +119,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
                     )}
                   </div>
                   <div className={`font-bold tracking-tight ${card.valueColor} ${compact ? 'text-base sm:text-lg' : 'text-xl sm:text-2xl'}`}>{card.value}</div>
-                  {'subtitle' in card && card.subtitle && (
+                  {card.subtitle && (
                     <p className={`text-muted-foreground mt-0.5 ${compact ? 'text-[10px]' : 'text-xs mt-1'}`}>{card.subtitle}</p>
                   )}
                 </div>
