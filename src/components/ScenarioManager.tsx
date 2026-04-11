@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Scenario, Charge, Income, PatrimoineItem, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { PatrimoineForm } from './PatrimoineForm';
 import { SummaryCards } from './SummaryCards';
 import { ScenarioPieChart } from './ScenarioPieChart';
 import { ScenarioComparison } from './ScenarioComparison';
-import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown, FileStack, GripVertical, CheckCircle2 } from 'lucide-react';
+import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown, FileStack, GripVertical, CheckCircle2, Menu } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
