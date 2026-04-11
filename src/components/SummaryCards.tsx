@@ -119,7 +119,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
                     )}
                   </div>
                   <div className={`font-bold tracking-tight ${card.valueColor} ${compact ? 'text-base sm:text-lg' : 'text-xl sm:text-2xl'}`}>{card.value}</div>
-                  {'subtitle' in card && card.subtitle && (
+                  {card.subtitle && (
                     <p className={`text-muted-foreground mt-0.5 ${compact ? 'text-[10px]' : 'text-xs mt-1'}`}>{card.subtitle}</p>
                   )}
                 </div>
