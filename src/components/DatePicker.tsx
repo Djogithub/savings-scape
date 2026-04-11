@@ -69,6 +69,7 @@ export function DatePicker({ value, onChange, required }: DatePickerProps) {
           <SelectValue placeholder="Jour" />
         </SelectTrigger>
         <SelectContent className="max-h-[200px]">
+          <SelectItem value="__empty__" className="text-muted-foreground">—</SelectItem>
           {days.map(d => (
             <SelectItem key={d} value={String(d)}>{String(d).padStart(2, '0')}</SelectItem>
           ))}
@@ -79,6 +80,7 @@ export function DatePicker({ value, onChange, required }: DatePickerProps) {
           <SelectValue placeholder="Mois" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="__empty__" className="text-muted-foreground">—</SelectItem>
           {MONTHS.map((m, i) => (
             <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
           ))}
@@ -89,6 +91,7 @@ export function DatePicker({ value, onChange, required }: DatePickerProps) {
           <SelectValue placeholder="Année" />
         </SelectTrigger>
         <SelectContent className="max-h-[200px]">
+          <SelectItem value="__empty__" className="text-muted-foreground">—</SelectItem>
           {years.map(y => (
             <SelectItem key={y} value={String(y)}>{y}</SelectItem>
           ))}
