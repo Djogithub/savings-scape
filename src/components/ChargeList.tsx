@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SeasonPeriod } from '@/types/finance';
+import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SeasonPeriod, getCurrentMonthChargesTotal } from '@/types/finance';
 import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { getChargeCategoryIcon } from '@/lib/categoryIcons';
 import { Button } from '@/components/ui/button';
@@ -71,7 +71,7 @@ function useItemOrder(key: string, ids: string[]) {
 }
 
 export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, onAdd, storageKey = 'charge-order' }: ChargeListProps) {
-  const totalMonthly = charges.reduce((sum, c) => sum + c.amount, 0);
+  const totalMonthly = getCurrentMonthChargesTotal(charges);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
