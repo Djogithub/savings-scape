@@ -1,4 +1,4 @@
-import { Charge, Income, CATEGORY_LABELS, ChargeCategory, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth } from '@/types/finance';
+import { Charge, Income, CATEGORY_LABELS, ChargeCategory, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
 import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { Badge } from '@/components/ui/badge';
 import { useMemo } from 'react';
@@ -83,16 +83,14 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
   }, [charges, currentYear, currentMonth, allLabels]);
 
   const incomeData = useMemo(() => {
-    const recurring = incomes.filter(i => i.isRecurring);
-    const oneTime = incomes.filter(i => !i.isRecurring);
-    const totalRecurring = recurring.reduce((s, i) => s + i.amount, 0);
-    const totalOneTime = oneTime.reduce((s, i) => s + i.amount, 0);
+    const totalRecurring = incomes.filter(i => i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, currentYear, currentMonth), 0);
+    const totalOneTime = incomes.filter(i => !i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, currentYear, currentMonth), 0);
     const total = totalRecurring + totalOneTime;
     const items: { name: string; value: number; pct: number; color: string }[] = [];
     if (totalRecurring > 0) items.push({ name: 'Récurrents', value: totalRecurring, pct: total > 0 ? (totalRecurring / total) * 100 : 0, color: INCOME_CHART_COLORS.recurring });
     if (totalOneTime > 0) items.push({ name: 'Ponctuels', value: totalOneTime, pct: total > 0 ? (totalOneTime / total) * 100 : 0, color: INCOME_CHART_COLORS.oneTime });
     return items;
-  }, [incomes]);
+  }, [incomes, currentYear, currentMonth]);
 
   const totalCharges = getCurrentMonthChargesTotal(charges);
   const totalIncomes = getCurrentMonthIncomesTotal(incomes);
