@@ -34,6 +34,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Revenus mensuels',
           value: formatCurrency(recurringIncomes),
+          subtitle: undefined as string | undefined,
           icon: TrendingUp,
           iconBg: 'bg-blue-500/10',
           iconColor: 'text-blue-500',
@@ -42,6 +43,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Charges mensuelles',
           value: formatCurrency(recurringCharges),
+          subtitle: undefined as string | undefined,
           icon: TrendingDown,
           iconBg: 'bg-red-500/10',
           iconColor: 'text-red-500',
@@ -65,6 +67,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Revenus ponctuels',
           value: formatCurrency(oneTimeIncomes),
+          subtitle: undefined as string | undefined,
           icon: Sparkles,
           iconBg: 'bg-emerald-500/10',
           iconColor: 'text-emerald-500',
@@ -73,6 +76,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Charges ponctuelles',
           value: formatCurrency(oneTimeCharges),
+          subtitle: undefined as string | undefined,
           icon: Zap,
           iconBg: 'bg-orange-500/10',
           iconColor: 'text-orange-500',
@@ -81,6 +85,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
         {
           label: 'Solde ponctuel',
           value: formatCurrency(oneTimeBalance),
+          subtitle: undefined as string | undefined,
           icon: Scale,
           iconBg: oneTimeBalance >= 0 ? 'bg-green-500/10' : 'bg-red-500/10',
           iconColor: oneTimeBalance >= 0 ? 'text-green-500' : 'text-red-500',
