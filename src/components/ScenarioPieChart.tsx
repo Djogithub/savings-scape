@@ -18,8 +18,8 @@ export function ScenarioPieChart({ charges, incomes, bare = false }: ScenarioPie
   const totalCharges = getCurrentMonthChargesTotal(charges);
   const solde = Math.max(0, totalIncomes - totalCharges);
 
+  // Pie shows how income is split: charges vs remaining (solde)
   const data = [
-    { name: 'Revenus', value: totalIncomes },
     { name: 'Charges', value: totalCharges },
     { name: 'Solde', value: solde },
   ].filter((d) => d.value > 0);
