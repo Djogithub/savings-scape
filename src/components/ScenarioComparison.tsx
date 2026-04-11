@@ -274,8 +274,8 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                     };
                     const actualAnnual = computeAnnualBalance(actualCharges, actualIncomes);
                     return [
-                      { label: 'Revenus mensuels', actual: actualTotalIncomes, values: filteredScenarios.map(s => getIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
-                      { label: 'Charges mensuelles', actual: actualTotalCharges, values: filteredScenarios.map(s => getTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
+                      { label: 'Revenus mensuels', actual: actualRecurringIncomes, values: filteredScenarios.map(s => getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
+                      { label: 'Charges mensuelles', actual: actualRecurringCharges, values: filteredScenarios.map(s => getRecurringTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
                       { label: 'Solde mensuel', actual: actualBalance, values: filteredScenarios.map(s => getScenarioBalance(s)), colorClass: 'dynamic', bold: true },
                       { label: 'Solde annuel', actual: actualAnnual, values: filteredScenarios.map(s => computeAnnualBalance(s.charges, s.incomes)), colorClass: 'dynamic', bold: true },
                     ];
