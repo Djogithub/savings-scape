@@ -127,12 +127,12 @@ const Index = () => {
           </div>
         </header>
 
-        <div className="flex-1 flex w-full">
+        <div className="flex-1 flex w-full overflow-hidden" style={{ height: 'calc(100vh - 65px)' }}>
           <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
 
-            <main className="flex-1 px-3 sm:px-6 py-6 sm:py-8 pb-20 md:pb-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full">
+            <main className="flex-1 px-3 sm:px-6 py-6 sm:py-8 pb-24 md:pb-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
               <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
                 {activeTab === 'actual' && (
