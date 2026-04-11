@@ -38,9 +38,9 @@ function generateColorForCategory(key: string): string {
   return `hsl(${hue}, 50%, 55%)`;
 }
 
-const INCOME_CHART_COLORS = {
-  recurring: 'hsl(160, 50%, 50%)',
-  oneTime: 'hsl(200, 50%, 55%)',
+const RATIO_COLORS = {
+  charges: 'hsl(0, 65%, 55%)',
+  solde: 'hsl(152, 44%, 49%)',
 };
 
 const CustomTooltip = ({ active, payload }: any) => {
@@ -82,15 +82,16 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
       }));
   }, [charges, currentYear, currentMonth, allLabels]);
 
-  const incomeData = useMemo(() => {
-    const totalRecurring = incomes.filter(i => i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, currentYear, currentMonth), 0);
-    const totalOneTime = incomes.filter(i => !i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, currentYear, currentMonth), 0);
-    const total = totalRecurring + totalOneTime;
+  const ratioData = useMemo(() => {
+    const totalC = getCurrentMonthAllChargesTotal(charges);
+    const totalI = getCurrentMonthAllIncomesTotal(incomes);
+    if (totalI <= 0) return [];
+    const solde = Math.max(0, totalI - totalC);
     const items: { name: string; value: number; pct: number; color: string }[] = [];
-    if (totalRecurring > 0) items.push({ name: 'Récurrents', value: totalRecurring, pct: total > 0 ? (totalRecurring / total) * 100 : 0, color: INCOME_CHART_COLORS.recurring });
-    if (totalOneTime > 0) items.push({ name: 'Ponctuels', value: totalOneTime, pct: total > 0 ? (totalOneTime / total) * 100 : 0, color: INCOME_CHART_COLORS.oneTime });
+    if (totalC > 0) items.push({ name: 'Charges', value: totalC, pct: (totalC / totalI) * 100, color: RATIO_COLORS.charges });
+    if (solde > 0) items.push({ name: 'Disponible', value: solde, pct: (solde / totalI) * 100, color: RATIO_COLORS.solde });
     return items;
-  }, [incomes, currentYear, currentMonth]);
+  }, [charges, incomes, currentYear, currentMonth]);
 
   const totalCharges = getCurrentMonthAllChargesTotal(charges);
   const totalIncomes = getCurrentMonthAllIncomesTotal(incomes);
@@ -180,24 +181,24 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
           )}
         </div>
 
-        {/* Income donut */}
+        {/* Charges ratio donut */}
         <div className="glass-card p-6 premium-shadow">
-          <h3 className="text-lg font-semibold tracking-tight mb-4">Revenus par type</h3>
-          {incomeData.length === 0 ? (
+          <h3 className="text-lg font-semibold tracking-tight mb-4">Part des charges dans les revenus</h3>
+          {ratioData.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-6">Aucun revenu enregistré.</p>
           ) : (
             <div className="flex flex-col items-center gap-4">
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
-                    data={incomeData}
+                    data={ratioData}
                     cx="50%" cy="50%"
                     innerRadius={65} outerRadius={110}
                     paddingAngle={2}
                     dataKey="value"
                     stroke="none"
                   >
-                    {incomeData.map((entry, idx) => (
+                    {ratioData.map((entry, idx) => (
                       <Cell key={idx} fill={entry.color} />
                     ))}
                   </Pie>
@@ -205,7 +206,7 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex flex-wrap gap-3 justify-center">
-                {incomeData.map(entry => (
+                {ratioData.map(entry => (
                   <div key={entry.name} className="flex items-center gap-1.5 text-xs">
                     <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
                     <span className="text-muted-foreground">{entry.name}</span>
@@ -214,7 +215,7 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
                 ))}
               </div>
               <div className="w-full space-y-2 mt-2">
-                {incomeData.map(entry => (
+                {ratioData.map(entry => (
                   <div key={entry.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
@@ -226,6 +227,10 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="w-full pt-2 border-t border-border text-sm flex justify-between">
+                <span className="text-muted-foreground">Total revenus</span>
+                <span className="font-semibold">{formatCurrency(totalIncomes)}</span>
               </div>
             </div>
           )}
