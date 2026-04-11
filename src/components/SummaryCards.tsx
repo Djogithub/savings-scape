@@ -1,5 +1,5 @@
-import { Charge, Income, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth } from '@/types/finance';
-import { TrendingDown, TrendingUp, Wallet, PiggyBank } from 'lucide-react';
+import { Charge, Income, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
+import { TrendingDown, TrendingUp, Wallet, PiggyBank, Zap, Sparkles } from 'lucide-react';
 
 interface SummaryCardsProps {
   charges: Charge[];
@@ -19,6 +19,10 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
   const now = new Date();
   const fixedCharges = charges.filter(c => c.type === 'fixed').reduce((s, c) => s + getChargeAmountForMonth(c, now.getFullYear(), now.getMonth()), 0);
   const savingsRate = totalIncomes > 0 ? ((solde / totalIncomes) * 100) : 0;
+
+  // One-time amounts for current month
+  const oneTimeCharges = charges.filter(c => c.type === 'one-time').reduce((s, c) => s + getChargeAmountForMonth(c, now.getFullYear(), now.getMonth()), 0);
+  const oneTimeIncomes = incomes.filter(i => !i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, now.getFullYear(), now.getMonth()), 0);
 
   const cards = [
     {
@@ -57,8 +61,32 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
     },
   ];
 
+  // Add one-time cards only if there are values this month
+  if (oneTimeIncomes > 0) {
+    cards.push({
+      label: 'Revenus ponctuels',
+      value: formatCurrency(oneTimeIncomes),
+      subtitle: undefined,
+      icon: Sparkles,
+      iconBg: 'bg-emerald-500/10',
+      iconColor: 'text-emerald-500',
+      valueColor: 'text-emerald-500',
+    });
+  }
+  if (oneTimeCharges > 0) {
+    cards.push({
+      label: 'Charges ponctuelles',
+      value: formatCurrency(oneTimeCharges),
+      subtitle: undefined,
+      icon: Zap,
+      iconBg: 'bg-orange-500/10',
+      iconColor: 'text-orange-500',
+      valueColor: 'text-orange-500',
+    });
+  }
+
   return (
-    <div className={`grid ${grid2x2 ? 'grid-cols-2 gap-2 sm:gap-3' : compact ? 'grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4'}`}>
+    <div className={`grid ${grid2x2 ? 'grid-cols-2 gap-2 sm:gap-3' : compact ? 'grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4'}`}>
       {cards.map((card) => (
         <div
           key={card.label}
