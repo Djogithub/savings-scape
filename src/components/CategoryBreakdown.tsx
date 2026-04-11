@@ -38,9 +38,9 @@ function generateColorForCategory(key: string): string {
   return `hsl(${hue}, 50%, 55%)`;
 }
 
-const INCOME_CHART_COLORS = {
-  recurring: 'hsl(160, 50%, 50%)',
-  oneTime: 'hsl(200, 50%, 55%)',
+const RATIO_COLORS = {
+  charges: 'hsl(0, 65%, 55%)',
+  solde: 'hsl(152, 44%, 49%)',
 };
 
 const CustomTooltip = ({ active, payload }: any) => {
