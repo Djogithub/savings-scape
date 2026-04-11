@@ -85,7 +85,7 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex flex-col w-full bg-background">
+      <div className="h-screen flex flex-col w-full bg-background overflow-hidden">
         <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
           <div className="px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
