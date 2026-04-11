@@ -58,7 +58,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
   ];
 
   return (
-    <div className={`grid gap-3 ${grid2x2 ? 'grid-cols-2' : compact ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'}`}>
+    <div className={`grid ${grid2x2 ? 'grid-cols-2 gap-2 sm:gap-3' : compact ? 'grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4'}`}>
       {cards.map((card) => (
         <div
           key={card.label}
@@ -72,7 +72,7 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
               </div>
             )}
           </div>
-          <div className={`font-bold tracking-tight ${card.valueColor} ${compact ? 'text-lg' : 'text-2xl'}`}>{card.value}</div>
+          <div className={`font-bold tracking-tight ${card.valueColor} ${compact ? 'text-base sm:text-lg' : 'text-xl sm:text-2xl'}`}>{card.value}</div>
           {card.subtitle && (
             <p className={`text-muted-foreground mt-0.5 ${compact ? 'text-[10px]' : 'text-xs mt-1'}`}>{card.subtitle}</p>
           )}

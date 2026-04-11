@@ -132,7 +132,7 @@ const Index = () => {
 
           <div className="flex-1 flex flex-col min-w-0">
 
-            <main className="flex-1 px-6 py-8 pb-20 md:pb-8 space-y-8 max-w-7xl mx-auto w-full">
+            <main className="flex-1 px-3 sm:px-6 py-6 sm:py-8 pb-20 md:pb-8 space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
               <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
                 {activeTab === 'actual' && (
