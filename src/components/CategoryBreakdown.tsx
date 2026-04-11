@@ -235,8 +235,6 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
             </div>
           )}
         </div>
-          )}
-        </div>
       </div>
     </div>
   );
