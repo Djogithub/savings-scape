@@ -253,12 +253,23 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { label: 'Revenus mensuels', actual: actualTotalIncomes, values: filteredScenarios.map(s => getIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
-                    { label: 'Charges mensuelles', actual: actualTotalCharges, values: filteredScenarios.map(s => getTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
-                    { label: 'Solde mensuel', actual: actualBalance, values: filteredScenarios.map(s => getScenarioBalance(s)), colorClass: 'dynamic', bold: true },
-                    { label: 'Solde annuel', actual: actualBalance * 12, values: filteredScenarios.map(s => getScenarioBalance(s) * 12), colorClass: 'dynamic', bold: true },
-                  ].map((row) => (
+                  {(() => {
+                    // Compute accurate annual totals by summing each month
+                    const computeAnnualBalance = (charges: Charge[], incomes: Income[]) => {
+                      let total = 0;
+                      for (let m = 0; m < 12; m++) {
+                        total += getIncomeTotalForMonth(incomes, currentYear, m) - getTotalForMonth(charges, currentYear, m);
+                      }
+                      return total;
+                    };
+                    const actualAnnual = computeAnnualBalance(actualCharges, actualIncomes);
+                    return [
+                      { label: 'Revenus mensuels', actual: actualTotalIncomes, values: filteredScenarios.map(s => getIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
+                      { label: 'Charges mensuelles', actual: actualTotalCharges, values: filteredScenarios.map(s => getTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
+                      { label: 'Solde mensuel', actual: actualBalance, values: filteredScenarios.map(s => getScenarioBalance(s)), colorClass: 'dynamic', bold: true },
+                      { label: 'Solde annuel', actual: actualAnnual, values: filteredScenarios.map(s => computeAnnualBalance(s.charges, s.incomes)), colorClass: 'dynamic', bold: true },
+                    ];
+                  })().map((row) => (
                     <tr key={row.label} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                       <td className="py-3.5 px-5 text-muted-foreground">{row.label}</td>
                       <td className={`py-3.5 px-5 text-right tabular-nums ${row.bold ? 'font-bold' : 'font-medium'} ${row.colorClass === 'dynamic' ? (row.actual >= 0 ? 'text-primary' : 'text-destructive') : row.colorClass}`}>
