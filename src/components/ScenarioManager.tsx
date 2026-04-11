@@ -86,6 +86,7 @@ export function ScenarioManager({
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>(scenarios.map(s => s.id));
   const [scenarioOrder, setScenarioOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
 
   const activeScenario = scenarios.find(s => s.id === activeScenarioId);
 
