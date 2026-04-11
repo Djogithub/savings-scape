@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SEASON_LABELS, Season } from '@/types/finance';
+import { Charge, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SeasonPeriod } from '@/types/finance';
 import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { getChargeCategoryIcon } from '@/lib/categoryIcons';
 import { Button } from '@/components/ui/button';
@@ -299,14 +299,17 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                           )}
                         </div>
 
-                        {/* Seasonal amounts */}
-                        {charge.type === 'seasonal' && charge.seasonalAmounts && (
+                        {/* Seasonal periods */}
+                        {charge.type === 'seasonal' && charge.seasonalPeriods && charge.seasonalPeriods.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
-                            {(Object.entries(charge.seasonalAmounts) as [Season, number][]).map(([season, amt]) => (
-                              <span key={season} className="inline-flex items-center gap-0.5 bg-muted/60 px-2 py-1 rounded-lg text-[10px]">
-                                {SEASON_LABELS[season].split(' ')[0]}: {formatCurrency(amt)}
-                              </span>
-                            ))}
+                            {charge.seasonalPeriods.map((period: SeasonPeriod) => {
+                              const MONTHS_SHORT = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+                              return (
+                                <span key={period.id} className="inline-flex items-center gap-0.5 bg-muted/60 px-2 py-1 rounded-lg text-[10px]">
+                                  {MONTHS_SHORT[period.startMonth - 1]}→{MONTHS_SHORT[period.endMonth - 1]}: {formatCurrency(period.amount)}
+                                </span>
+                              );
+                            })}
                           </div>
                         )}
 

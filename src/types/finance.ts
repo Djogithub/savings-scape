@@ -40,34 +40,44 @@ export const CHARGE_TYPE_LABELS: Record<ChargeType, string> = {
   'seasonal': 'Saisonnière',
 };
 
-export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
-
-export const SEASON_LABELS: Record<Season, string> = {
-  spring: 'Printemps (Avr-Juin)',
-  summer: 'Été (Juil-Sep)',
-  autumn: 'Automne (Oct-Déc)',
-  winter: 'Hiver (Jan-Mars)',
-};
-
-export interface SeasonalAmounts {
-  spring: number;
-  summer: number;
-  autumn: number;
-  winter: number;
+export interface SeasonPeriod {
+  id: string;
+  startMonth: number; // 1-12
+  endMonth: number;   // 1-12
+  amount: number;
 }
 
 /**
- * Returns the season for a given month (0-indexed).
- * Winter: Jan(0), Feb(1), Mar(2)
- * Spring: Apr(3), May(4), Jun(5)
- * Summer: Jul(6), Aug(7), Sep(8)
- * Autumn: Oct(9), Nov(10), Dec(11)
+ * Compute the yearly average monthly amount for seasonal periods.
+ * Each period covers startMonth to endMonth (inclusive, wraps around year).
+ * Months not covered by any period default to 0.
  */
-export function getSeasonForMonth(month: number): Season {
-  if (month >= 3 && month <= 5) return 'spring';
-  if (month >= 6 && month <= 8) return 'summer';
-  if (month >= 9 && month <= 11) return 'autumn';
-  return 'winter';
+export function getSeasonalMonthlyAverage(periods: SeasonPeriod[]): number {
+  const monthAmounts = new Array(12).fill(0);
+  for (const p of periods) {
+    if (p.startMonth <= p.endMonth) {
+      for (let m = p.startMonth; m <= p.endMonth; m++) monthAmounts[m - 1] = p.amount;
+    } else {
+      // wraps: e.g. Nov(11) -> Feb(2)
+      for (let m = p.startMonth; m <= 12; m++) monthAmounts[m - 1] = p.amount;
+      for (let m = 1; m <= p.endMonth; m++) monthAmounts[m - 1] = p.amount;
+    }
+  }
+  return monthAmounts.reduce((a, b) => a + b, 0) / 12;
+}
+
+/**
+ * Get the seasonal amount for a specific month (1-12).
+ */
+export function getSeasonalAmountForMonth(periods: SeasonPeriod[], month: number): number {
+  for (const p of periods) {
+    if (p.startMonth <= p.endMonth) {
+      if (month >= p.startMonth && month <= p.endMonth) return p.amount;
+    } else {
+      if (month >= p.startMonth || month <= p.endMonth) return p.amount;
+    }
+  }
+  return 0;
 }
 
 /**
@@ -101,9 +111,8 @@ export function getChargeAmountForMonth(charge: Charge, year: number, month: num
     return 0;
   }
   // Seasonal
-  if (charge.type === 'seasonal' && charge.seasonalAmounts) {
-    const season = getSeasonForMonth(month);
-    return charge.seasonalAmounts[season];
+  if (charge.type === 'seasonal' && charge.seasonalPeriods) {
+    return getSeasonalAmountForMonth(charge.seasonalPeriods, month + 1); // month is 0-indexed
   }
   return charge.amount;
 }
@@ -187,7 +196,8 @@ export interface Charge {
   isProjection?: boolean;
   notes?: string;
   originId?: string;
-  seasonalAmounts?: SeasonalAmounts;
+  seasonalAmounts?: Record<string, number>; // legacy
+  seasonalPeriods?: SeasonPeriod[];
 }
 
 export interface Income {

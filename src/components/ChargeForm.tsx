@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Charge, ChargeType, ChargeCategory, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SEASON_LABELS, SeasonalAmounts, Season } from '@/types/finance';
-import { Plus } from 'lucide-react';
+import { Charge, ChargeType, ChargeCategory, CATEGORY_LABELS, CHARGE_TYPE_LABELS, SeasonPeriod, getSeasonalMonthlyAverage } from '@/types/finance';
+import { Plus, Trash2 } from 'lucide-react';
 import { DatePicker } from './DatePicker';
 import { useCustomCategories } from '@/hooks/useCustomCategories';
+import { Checkbox } from '@/components/ui/checkbox';
+
+const MONTH_LABELS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
 interface ChargeFormProps {
   onSubmit: (charge: Omit<Charge, 'id'>) => void;
@@ -30,18 +33,22 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
   const [interestRate, setInterestRate] = useState(editCharge?.interestRate?.toString() ?? '');
   const [monthlyDay, setMonthlyDay] = useState(editCharge?.monthlyDay?.toString() ?? '1');
   const [notes, setNotes] = useState(editCharge?.notes ?? '');
-  const [seasonalAmounts, setSeasonalAmounts] = useState<SeasonalAmounts>(
-    editCharge?.seasonalAmounts ?? { spring: 0, summer: 0, autumn: 0, winter: 0 }
+  const [isSeasonal, setIsSeasonal] = useState(editCharge?.type === 'seasonal');
+  const [seasonalPeriods, setSeasonalPeriods] = useState<SeasonPeriod[]>(
+    editCharge?.seasonalPeriods ?? []
   );
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
   const { customCategories, addCategory } = useCustomCategories();
-
   const allCategories: Record<string, string> = { ...CATEGORY_LABELS, ...customCategories };
-
   const isCredit = category.startsWith('credit');
-  const isSeasonal = type === 'seasonal';
+
+  // Sync type when seasonal checkbox changes
+  useEffect(() => {
+    if (isSeasonal) setType('seasonal');
+    else if (type === 'seasonal') setType('fixed');
+  }, [isSeasonal]);
 
   const handleCategoryChange = (value: string) => {
     if (value === '__new__') {
@@ -61,16 +68,31 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
     setIsAddingCategory(false);
   };
 
+  const addPeriod = () => {
+    setSeasonalPeriods(prev => [...prev, {
+      id: crypto.randomUUID(),
+      startMonth: 1,
+      endMonth: 3,
+      amount: 0,
+    }]);
+  };
+
+  const removePeriod = (id: string) => {
+    setSeasonalPeriods(prev => prev.filter(p => p.id !== id));
+  };
+
+  const updatePeriod = (id: string, field: keyof SeasonPeriod, value: string | number) => {
+    setSeasonalPeriods(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const avgSeasonal = isSeasonal
-      ? (seasonalAmounts.spring + seasonalAmounts.summer + seasonalAmounts.autumn + seasonalAmounts.winter) / 4
-      : parseFloat(amount);
+    const avgSeasonal = isSeasonal ? getSeasonalMonthlyAverage(seasonalPeriods) : parseFloat(amount);
 
     const chargeData: Omit<Charge, 'id'> = {
       name,
       amount: isSeasonal ? avgSeasonal : parseFloat(amount),
-      type,
+      type: isSeasonal ? 'seasonal' : type,
       category: category as ChargeCategory,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
@@ -80,7 +102,7 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
       monthlyDay: monthlyDay ? parseInt(monthlyDay) : undefined,
       isProjection,
       notes: notes || undefined,
-      seasonalAmounts: isSeasonal ? seasonalAmounts : undefined,
+      seasonalPeriods: isSeasonal ? seasonalPeriods : undefined,
     };
 
     if (editCharge && onUpdate) {
@@ -91,12 +113,9 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
     setOpen(false);
     if (!editCharge) {
       setName(''); setAmount(''); setTotalAmount(''); setPaidAmount(''); setInterestRate(''); setNotes('');
-      setSeasonalAmounts({ spring: 0, summer: 0, autumn: 0, winter: 0 });
+      setSeasonalPeriods([]);
+      setIsSeasonal(false);
     }
-  };
-
-  const updateSeason = (season: Season, value: string) => {
-    setSeasonalAmounts(prev => ({ ...prev, [season]: parseFloat(value) || 0 }));
   };
 
   return (
@@ -122,7 +141,10 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Type</Label>
-              <Select value={type} onValueChange={(v: ChargeType) => setType(v)}>
+              <Select value={isSeasonal ? 'seasonal' : type} onValueChange={(v: ChargeType) => {
+                if (v === 'seasonal') { setIsSeasonal(true); }
+                else { setIsSeasonal(false); setType(v); }
+              }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {Object.entries(CHARGE_TYPE_LABELS).map(([k, v]) => (
@@ -168,25 +190,64 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
             </div>
           </div>
 
+          {/* Seasonal checkbox */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="seasonal"
+              checked={isSeasonal}
+              onCheckedChange={(v) => setIsSeasonal(!!v)}
+            />
+            <Label htmlFor="seasonal" className="text-sm cursor-pointer">Charge saisonnière</Label>
+          </div>
+
           {isSeasonal ? (
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Montants saisonniers (€/mois)</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {(Object.entries(SEASON_LABELS) as [Season, string][]).map(([key, label]) => (
-                  <div key={key} className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">{label}</Label>
+              <Label className="text-sm font-medium">Périodes de charges</Label>
+              {seasonalPeriods.map((period) => (
+                <div key={period.id} className="flex items-end gap-2 p-3 rounded-lg border border-border/60 bg-muted/30">
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">De</Label>
+                    <Select value={String(period.startMonth)} onValueChange={v => updatePeriod(period.id, 'startMonth', parseInt(v))}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {MONTH_LABELS.map((m, i) => (
+                          <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">À</Label>
+                    <Select value={String(period.endMonth)} onValueChange={v => updatePeriod(period.id, 'endMonth', parseInt(v))}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {MONTH_LABELS.map((m, i) => (
+                          <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">€/mois</Label>
                     <Input
                       type="number"
                       step="0.01"
-                      value={seasonalAmounts[key] || ''}
-                      onChange={e => updateSeason(key, e.target.value)}
+                      className="h-8 text-xs"
+                      value={period.amount || ''}
+                      onChange={e => updatePeriod(period.id, 'amount', parseFloat(e.target.value) || 0)}
                       placeholder="0"
                     />
                   </div>
-                ))}
-              </div>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => removePeriod(period.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="gap-1" onClick={addPeriod}>
+                <Plus className="h-3.5 w-3.5" /> Ajouter une période
+              </Button>
               <p className="text-xs text-muted-foreground">
-                Moyenne mensuelle : {((seasonalAmounts.spring + seasonalAmounts.summer + seasonalAmounts.autumn + seasonalAmounts.winter) / 4).toFixed(2)} €
+                Moyenne mensuelle (sur 12 mois) : {getSeasonalMonthlyAverage(seasonalPeriods).toFixed(2)} €
               </p>
             </div>
           ) : (
