@@ -32,8 +32,16 @@ function getTotalForMonth(charges: Charge[], year: number, month: number) {
   return charges.reduce((s, c) => s + getChargeAmountForMonth(c, year, month), 0);
 }
 
+function getRecurringTotalForMonth(charges: Charge[], year: number, month: number) {
+  return charges.filter(c => c.type !== 'one-time').reduce((s, c) => s + getChargeAmountForMonth(c, year, month), 0);
+}
+
 function getIncomeTotalForMonth(incomes: Income[], year: number, month: number) {
   return incomes.reduce((s, i) => s + getIncomeAmountForMonth(i, year, month), 0);
+}
+
+function getRecurringIncomeTotalForMonth(incomes: Income[], year: number, month: number) {
+  return incomes.filter(i => i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, year, month), 0);
 }
 
 const SOFT_COLORS = [
