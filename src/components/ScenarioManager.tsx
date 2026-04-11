@@ -91,6 +91,17 @@ export function ScenarioManager({
 
   const activeScenario = scenarios.find(s => s.id === activeScenarioId);
 
+  // Detect scroll to collapse menu
+  useEffect(() => {
+    const scrollContainer = document.querySelector('.overflow-y-auto');
+    if (!scrollContainer) return;
+    const handleScroll = () => {
+      setIsScrolled(scrollContainer.scrollTop > 40);
+    };
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Compute effective order for compare view
   const currentOrder = scenarioOrder.filter(id => id === '__actual__' || scenarios.some(s => s.id === id && selectedScenarios.includes(s.id)));
   const missingIds = selectedScenarios.filter(id => !currentOrder.includes(id));
