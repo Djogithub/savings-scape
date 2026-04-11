@@ -98,8 +98,8 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
   const actualBalance = actualRecurringIncomes - actualRecurringCharges;
 
   const getScenarioBalance = (s: Scenario) => {
-    const charges = getTotalForMonth(s.charges, currentYear, currentMonth);
-    const incomes = getIncomeTotalForMonth(s.incomes, currentYear, currentMonth);
+    const charges = getRecurringTotalForMonth(s.charges, currentYear, currentMonth);
+    const incomes = getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth);
     return incomes - charges;
   };
 
