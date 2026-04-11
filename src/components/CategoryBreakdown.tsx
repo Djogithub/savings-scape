@@ -82,15 +82,16 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
       }));
   }, [charges, currentYear, currentMonth, allLabels]);
 
-  const incomeData = useMemo(() => {
-    const totalRecurring = incomes.filter(i => i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, currentYear, currentMonth), 0);
-    const totalOneTime = incomes.filter(i => !i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, currentYear, currentMonth), 0);
-    const total = totalRecurring + totalOneTime;
+  const ratioData = useMemo(() => {
+    const totalC = getCurrentMonthAllChargesTotal(charges);
+    const totalI = getCurrentMonthAllIncomesTotal(incomes);
+    if (totalI <= 0) return [];
+    const solde = Math.max(0, totalI - totalC);
     const items: { name: string; value: number; pct: number; color: string }[] = [];
-    if (totalRecurring > 0) items.push({ name: 'Récurrents', value: totalRecurring, pct: total > 0 ? (totalRecurring / total) * 100 : 0, color: INCOME_CHART_COLORS.recurring });
-    if (totalOneTime > 0) items.push({ name: 'Ponctuels', value: totalOneTime, pct: total > 0 ? (totalOneTime / total) * 100 : 0, color: INCOME_CHART_COLORS.oneTime });
+    if (totalC > 0) items.push({ name: 'Charges', value: totalC, pct: (totalC / totalI) * 100, color: RATIO_COLORS.charges });
+    if (solde > 0) items.push({ name: 'Disponible', value: solde, pct: (solde / totalI) * 100, color: RATIO_COLORS.solde });
     return items;
-  }, [incomes, currentYear, currentMonth]);
+  }, [charges, incomes, currentYear, currentMonth]);
 
   const totalCharges = getCurrentMonthAllChargesTotal(charges);
   const totalIncomes = getCurrentMonthAllIncomesTotal(incomes);
