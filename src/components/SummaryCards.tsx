@@ -99,11 +99,11 @@ export function SummaryCards({ charges, incomes, compact = false, grid2x2 = fals
             {sections.filter(s => !('show' in s) || s.show).length > 1 && (
               <h3 className={`font-semibold text-muted-foreground mb-2 ${compact ? 'text-xs' : 'text-sm'}`}>{section.title}</h3>
             )}
-            <div className={`grid ${grid2x2 ? 'grid-cols-2 gap-2 sm:gap-3' : compact ? 'grid-cols-3 gap-2 sm:gap-3' : 'grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4'}`}>
-              {section.cards.map((card) => (
+            <div className={`grid ${grid2x2 ? 'grid-cols-2 gap-2 sm:gap-3' : compact ? 'grid-cols-2 gap-2 sm:gap-3' : 'grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'}`}>
+              {[section.cards[2], section.cards[0], section.cards[1]].map((card, idx) => (
                 <div
                   key={card.label}
-                  className={`glass-card premium-shadow ${compact ? 'p-3' : 'p-5'}`}
+                  className={`glass-card premium-shadow ${compact ? 'p-3' : 'p-5'} ${idx === 0 ? (grid2x2 ? 'col-span-2' : compact ? 'col-span-2' : 'sm:col-span-2') : ''}`}
                 >
                   <div className={`flex items-start justify-between ${compact ? 'mb-2' : 'mb-4'}`}>
                     <span className={`font-medium text-muted-foreground ${compact ? 'text-[11px]' : 'text-[13px]'}`}>{card.label}</span>
