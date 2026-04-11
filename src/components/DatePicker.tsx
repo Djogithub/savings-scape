@@ -28,26 +28,34 @@ export function DatePicker({ value, onChange, required }: DatePickerProps) {
       setYear(y || '');
       setMonth(m ? String(parseInt(m)) : '');
       setDay(d ? String(parseInt(d)) : '');
+    } else {
+      setYear(''); setMonth(''); setDay('');
     }
   }, []);
 
   const updateDate = (newDay: string, newMonth: string, newYear: string) => {
-    if (newDay && newMonth && newYear) {
+    if (newDay && newMonth && newYear && newDay !== '__empty__' && newMonth !== '__empty__' && newYear !== '__empty__') {
       onChange(`${newYear}-${newMonth.padStart(2, '0')}-${newDay.padStart(2, '0')}`);
-    } else if (!required) {
+    } else {
       onChange('');
     }
   };
 
-  const handleDay = (v: string) => { setDay(v); updateDate(v, month, year); };
+  const clearDate = () => {
+    setDay(''); setMonth(''); setYear('');
+    onChange('');
+  };
+
+  const handleDay = (v: string) => { if (v === '__empty__') { clearDate(); return; } setDay(v); updateDate(v, month, year); };
   const handleMonth = (v: string) => {
+    if (v === '__empty__') { clearDate(); return; }
     setMonth(v);
     const maxDays = getDaysInMonth(parseInt(v), parseInt(year) || 2025);
     const newDay = parseInt(day) > maxDays ? String(maxDays) : day;
     if (newDay !== day) setDay(newDay);
     updateDate(newDay || day, v, year);
   };
-  const handleYear = (v: string) => { setYear(v); updateDate(day, month, v); };
+  const handleYear = (v: string) => { if (v === '__empty__') { clearDate(); return; } setYear(v); updateDate(day, month, v); };
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 40 }, (_, i) => currentYear - 10 + i);
@@ -61,6 +69,7 @@ export function DatePicker({ value, onChange, required }: DatePickerProps) {
           <SelectValue placeholder="Jour" />
         </SelectTrigger>
         <SelectContent className="max-h-[200px]">
+          <SelectItem value="__empty__" className="text-muted-foreground">—</SelectItem>
           {days.map(d => (
             <SelectItem key={d} value={String(d)}>{String(d).padStart(2, '0')}</SelectItem>
           ))}
@@ -71,6 +80,7 @@ export function DatePicker({ value, onChange, required }: DatePickerProps) {
           <SelectValue placeholder="Mois" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="__empty__" className="text-muted-foreground">—</SelectItem>
           {MONTHS.map((m, i) => (
             <SelectItem key={i} value={String(i + 1)}>{m}</SelectItem>
           ))}
@@ -81,6 +91,7 @@ export function DatePicker({ value, onChange, required }: DatePickerProps) {
           <SelectValue placeholder="Année" />
         </SelectTrigger>
         <SelectContent className="max-h-[200px]">
+          <SelectItem value="__empty__" className="text-muted-foreground">—</SelectItem>
           {years.map(y => (
             <SelectItem key={y} value={String(y)}>{y}</SelectItem>
           ))}
