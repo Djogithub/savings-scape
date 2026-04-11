@@ -238,6 +238,7 @@ const Index = () => {
               </motion.div>
             </AnimatePresence>
           </main>
+          </div>
         </div>
         </div>
       </div>
