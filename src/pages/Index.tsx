@@ -130,17 +130,21 @@ const Index = () => {
         <div className="flex-1 flex w-full overflow-hidden" style={{ height: 'calc(100vh - 65px)' }}>
           <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
-          <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Sticky page title */}
+            <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/40 px-3 sm:px-6 py-3">
+              <h1 className="text-xl font-bold tracking-tight">
+                {activeTab === 'actual' ? 'Situation réelle' : activeTab === 'categories' ? 'Catégories' : 'Scénarios'}
+              </h1>
+            </div>
 
-            <main className="flex-1 px-3 sm:px-6 py-6 sm:py-8 pb-32 md:pb-10 space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full">
+            <div className="flex-1 overflow-y-auto">
+            <main className="flex-1 px-3 sm:px-6 py-4 sm:py-6 pb-32 md:pb-10 space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
               <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
                 {activeTab === 'actual' && (
                   <div className="space-y-8">
-                    <div>
-                      <h1 className="text-xl font-bold tracking-tight">Situation réelle</h1>
-                      <p className="text-sm text-muted-foreground">Vue d'ensemble de vos finances actuelles.</p>
-                    </div>
+                    <p className="text-sm text-muted-foreground">Vue d'ensemble de vos finances actuelles.</p>
                     <SummaryCards charges={actualCharges} incomes={actualIncomes} />
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
