@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Scenario, Charge, Income, PatrimoineItem, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import { PatrimoineForm } from './PatrimoineForm';
 import { SummaryCards } from './SummaryCards';
 import { ScenarioPieChart } from './ScenarioPieChart';
 import { ScenarioComparison } from './ScenarioComparison';
-import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown, FileStack, GripVertical, CheckCircle2 } from 'lucide-react';
+import { Plus, Copy, Trash2, Edit2, FolderOpen, MoreHorizontal, Palette, Scale, ChevronDown, FileStack, GripVertical, CheckCircle2, Menu } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -81,7 +81,8 @@ export function ScenarioManager({
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [view, setView] = useState<'detail' | 'compare'>('detail');
-
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   // Compare view state (lifted from ScenarioComparison)
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>(scenarios.map(s => s.id));
   const [scenarioOrder, setScenarioOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
@@ -89,6 +90,17 @@ export function ScenarioManager({
   const [dropTarget, setDropTarget] = useState<string | null>(null);
 
   const activeScenario = scenarios.find(s => s.id === activeScenarioId);
+
+  // Detect scroll to collapse menu
+  useEffect(() => {
+    const scrollContainer = document.querySelector('.overflow-y-auto');
+    if (!scrollContainer) return;
+    const handleScroll = () => {
+      setIsScrolled(scrollContainer.scrollTop > 40);
+    };
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Compute effective order for compare view
   const currentOrder = scenarioOrder.filter(id => id === '__actual__' || scenarios.some(s => s.id === id && selectedScenarios.includes(s.id)));
@@ -162,186 +174,211 @@ export function ScenarioManager({
   return (
     <div className="space-y-0">
       {/* Sticky header: view toggle + scenario tabs */}
-      <div className="sticky top-[57px] sm:top-[73px] z-40 bg-background/80 backdrop-blur-xl pb-4 space-y-3 -mx-6 px-6 pt-2 border-b border-border/20">
-        {/* View toggle + Create */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex gap-1 bg-muted/60 p-1 rounded-xl border border-border/40">
-            <button
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'detail' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-              onClick={() => setView('detail')}
-            >
-              Scénarios
-            </button>
-            <button
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${view === 'compare' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-              onClick={() => setView('compare')}
-            >
-              <Scale className="h-3.5 w-3.5" />
-              Comparer
-            </button>
+      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/20 -mx-3 sm:-mx-6 px-3 sm:px-6">
+        {/* Collapsed bar when scrolled */}
+        {isScrolled && !menuOpen ? (
+          <div className="flex items-center justify-between py-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-medium text-foreground">{view === 'detail' ? (activeScenario?.name || 'Scénarios') : 'Comparaison'}</span>
+              {view === 'detail' && activeScenario && (
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: activeScenario.color }} />
+              )}
+            </div>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setMenuOpen(true)}>
+              <Menu className="h-4 w-4" />
+            </Button>
           </div>
-
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Plus className="h-4 w-4" /> Nouveau
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Créer un scénario</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Input
-                  placeholder="Ex: Scénario optimiste"
-                  value={newName}
-                  onChange={e => setNewName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleCreate()}
-                />
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Partir de :</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant={createSource === 'situation' ? 'default' : 'outline'}
-                      size="sm" onClick={() => setCreateSource('situation')} className="gap-2"
-                    >
-                      <Copy className="h-4 w-4" /> Ma situation
-                    </Button>
-                    <Button
-                      variant={createSource === 'scenario' ? 'default' : 'outline'}
-                      size="sm" onClick={() => setCreateSource('scenario')} className="gap-2"
-                      disabled={scenarios.length === 0}
-                    >
-                      <FileStack className="h-4 w-4" /> Un scénario
-                    </Button>
-                    <Button
-                      variant={createSource === 'empty' ? 'default' : 'outline'}
-                      size="sm" onClick={() => setCreateSource('empty')} className="gap-2"
-                    >
-                      <FolderOpen className="h-4 w-4" /> Vide
-                    </Button>
-                  </div>
-                  {createSource === 'scenario' && scenarios.length > 0 && (
-                    <Select value={sourceScenarioId} onValueChange={setSourceScenarioId}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Choisir un scénario source" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {scenarios.map(s => (
-                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-                <Button
-                  onClick={handleCreate} className="w-full"
-                  disabled={!newName.trim() || (createSource === 'scenario' && !sourceScenarioId)}
-                >
-                  Créer
+        ) : (
+          <div className="pb-4 space-y-3 pt-2">
+            {/* Close button when menu forced open while scrolled */}
+            {isScrolled && menuOpen && (
+              <div className="flex justify-end">
+                <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setMenuOpen(false)}>
+                  Réduire
                 </Button>
               </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Scenario tabs - detail view */}
-        {view === 'detail' && scenarios.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {scenarios.map((s) => {
-              const isActive = s.id === activeScenarioId;
-              return (
-                <div key={s.id} className="flex items-center gap-0.5">
-                  <motion.button
-                    onClick={() => setActiveScenarioId(s.id)}
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
-                      isActive
-                        ? 'bg-card border-border shadow-sm'
-                        : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
-                    }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
-                    {s.name}
-                  </motion.button>
-
-                  {isActive && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-2" align="start">
-                        <div className="space-y-1">
-                          <button
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-muted/60 transition-colors"
-                            onClick={() => { setRenameId(s.id); setRenameValue(s.name); }}
-                          >
-                            <Edit2 className="h-3.5 w-3.5" /> Renommer
-                          </button>
-                          <button
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-muted/60 transition-colors"
-                            onClick={() => onDuplicateScenario(s.id)}
-                          >
-                            <Copy className="h-3.5 w-3.5" /> Dupliquer
-                          </button>
-                          <div className="px-3 py-2">
-                            <div className="flex items-center gap-2 text-sm mb-2">
-                              <Palette className="h-3.5 w-3.5" /> Couleur
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">
-                              {PRESET_COLORS.map(c => (
-                                <button
-                                  key={c}
-                                  className={`w-6 h-6 rounded-full border-2 transition-all ${s.color === c ? 'border-foreground scale-110' : 'border-transparent hover:scale-110'}`}
-                                  style={{ backgroundColor: c }}
-                                  onClick={() => onUpdateScenarioColor(s.id, c)}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          <div className="h-px bg-border my-1" />
-                          <button
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
-                            onClick={() => {
-                              onDeleteScenario(s.id);
-                              setActiveScenarioId(scenarios.find(x => x.id !== s.id)?.id ?? null);
-                            }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" /> Supprimer
-                          </button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Scenario toggle checkboxes - compare view */}
-        {view === 'compare' && scenarios.length > 0 && (
-          <div className="flex flex-wrap gap-2 items-center">
-            {scenarios.map((s) => {
-              const isSelected = selectedScenarios.includes(s.id);
-              return (
-                <motion.button
-                  key={s.id}
-                  onClick={() => toggleScenario(s.id)}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
-                    isSelected ? 'bg-card border-border shadow-sm' : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
-                  }`}
-                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            )}
+            {/* View toggle + Create */}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex gap-1 bg-muted/60 p-1 rounded-xl border border-border/40">
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${view === 'detail' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  onClick={() => setView('detail')}
                 >
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colorMap[s.id] || softActualColor }} />
-                  {s.name}
-                  {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-                </motion.button>
-              );
-            })}
+                  Scénarios
+                </button>
+                <button
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${view === 'compare' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  onClick={() => setView('compare')}
+                >
+                  <Scale className="h-3.5 w-3.5" />
+                  Comparer
+                </button>
+              </div>
+
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Plus className="h-4 w-4" /> Nouveau
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Créer un scénario</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <Input
+                      placeholder="Ex: Scénario optimiste"
+                      value={newName}
+                      onChange={e => setNewName(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleCreate()}
+                    />
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Partir de :</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          variant={createSource === 'situation' ? 'default' : 'outline'}
+                          size="sm" onClick={() => setCreateSource('situation')} className="gap-2"
+                        >
+                          <Copy className="h-4 w-4" /> Ma situation
+                        </Button>
+                        <Button
+                          variant={createSource === 'scenario' ? 'default' : 'outline'}
+                          size="sm" onClick={() => setCreateSource('scenario')} className="gap-2"
+                          disabled={scenarios.length === 0}
+                        >
+                          <FileStack className="h-4 w-4" /> Un scénario
+                        </Button>
+                        <Button
+                          variant={createSource === 'empty' ? 'default' : 'outline'}
+                          size="sm" onClick={() => setCreateSource('empty')} className="gap-2"
+                        >
+                          <FolderOpen className="h-4 w-4" /> Vide
+                        </Button>
+                      </div>
+                      {createSource === 'scenario' && scenarios.length > 0 && (
+                        <Select value={sourceScenarioId} onValueChange={setSourceScenarioId}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Choisir un scénario source" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {scenarios.map(s => (
+                              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                    <Button
+                      onClick={handleCreate} className="w-full"
+                      disabled={!newName.trim() || (createSource === 'scenario' && !sourceScenarioId)}
+                    >
+                      Créer
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Scenario tabs - detail view */}
+            {view === 'detail' && scenarios.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {scenarios.map((s) => {
+                  const isActive = s.id === activeScenarioId;
+                  return (
+                    <div key={s.id} className="flex items-center gap-0.5">
+                      <motion.button
+                        onClick={() => { setActiveScenarioId(s.id); if (isScrolled) setMenuOpen(false); }}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
+                          isActive
+                            ? 'bg-card border-border shadow-sm'
+                            : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
+                        }`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                        {s.name}
+                      </motion.button>
+
+                      {isActive && (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2" align="start">
+                            <div className="space-y-1">
+                              <button
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-muted/60 transition-colors"
+                                onClick={() => { setRenameId(s.id); setRenameValue(s.name); }}
+                              >
+                                <Edit2 className="h-3.5 w-3.5" /> Renommer
+                              </button>
+                              <button
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-muted/60 transition-colors"
+                                onClick={() => onDuplicateScenario(s.id)}
+                              >
+                                <Copy className="h-3.5 w-3.5" /> Dupliquer
+                              </button>
+                              <div className="px-3 py-2">
+                                <div className="flex items-center gap-2 text-sm mb-2">
+                                  <Palette className="h-3.5 w-3.5" /> Couleur
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {PRESET_COLORS.map(c => (
+                                    <button
+                                      key={c}
+                                      className={`w-6 h-6 rounded-full border-2 transition-all ${s.color === c ? 'border-foreground scale-110' : 'border-transparent hover:scale-110'}`}
+                                      style={{ backgroundColor: c }}
+                                      onClick={() => onUpdateScenarioColor(s.id, c)}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="h-px bg-border my-1" />
+                              <button
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg hover:bg-destructive/10 text-destructive transition-colors"
+                                onClick={() => {
+                                  onDeleteScenario(s.id);
+                                  setActiveScenarioId(scenarios.find(x => x.id !== s.id)?.id ?? null);
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" /> Supprimer
+                              </button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Scenario toggle checkboxes - compare view */}
+            {view === 'compare' && scenarios.length > 0 && (
+              <div className="flex flex-wrap gap-2 items-center">
+                {scenarios.map((s) => {
+                  const isSelected = selectedScenarios.includes(s.id);
+                  return (
+                    <motion.button
+                      key={s.id}
+                      onClick={() => toggleScenario(s.id)}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium transition-all border ${
+                        isSelected ? 'bg-card border-border shadow-sm' : 'bg-transparent border-transparent text-muted-foreground hover:bg-muted/40'
+                      }`}
+                      whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                    >
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: colorMap[s.id] || softActualColor }} />
+                      {s.name}
+                      {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>
