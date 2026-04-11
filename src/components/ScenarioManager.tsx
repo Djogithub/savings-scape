@@ -108,6 +108,11 @@ export function ScenarioManager({
   const handleDragOver = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
     if (!draggedItem || draggedItem === targetId) return;
+    setDropTarget(targetId);
+  };
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedItem || draggedItem === targetId) return;
     const newOrder = [...effectiveOrder];
     const fromIdx = newOrder.indexOf(draggedItem);
     const toIdx = newOrder.indexOf(targetId);
@@ -115,8 +120,9 @@ export function ScenarioManager({
     newOrder.splice(fromIdx, 1);
     newOrder.splice(toIdx, 0, draggedItem);
     setScenarioOrder(newOrder);
+    setDropTarget(null);
   };
-  const handleDragEnd = () => setDraggedItem(null);
+  const handleDragEnd = () => { setDraggedItem(null); setDropTarget(null); };
 
   const handleCreate = () => {
     if (!newName.trim()) return;
