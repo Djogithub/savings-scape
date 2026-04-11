@@ -265,8 +265,8 @@ export function ChargeForm({ onSubmit, isProjection = false, editCharge, onUpdat
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Date de début {isCredit && <span className="text-destructive">*</span>}</Label>
-              <DatePicker value={startDate} onChange={setStartDate} required={isCredit} />
+              <Label>Date de début</Label>
+              <DatePicker value={startDate} onChange={setStartDate} />
             </div>
             <div className="space-y-2">
               <Label>Date de fin</Label>
