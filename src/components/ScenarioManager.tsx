@@ -86,6 +86,7 @@ export function ScenarioManager({
   const [selectedScenarios, setSelectedScenarios] = useState<string[]>(scenarios.map(s => s.id));
   const [scenarioOrder, setScenarioOrder] = useState<string[]>(['__actual__', ...scenarios.map(s => s.id)]);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
 
   const activeScenario = scenarios.find(s => s.id === activeScenarioId);
 
@@ -107,6 +108,11 @@ export function ScenarioManager({
   const handleDragOver = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
     if (!draggedItem || draggedItem === targetId) return;
+    setDropTarget(targetId);
+  };
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedItem || draggedItem === targetId) return;
     const newOrder = [...effectiveOrder];
     const fromIdx = newOrder.indexOf(draggedItem);
     const toIdx = newOrder.indexOf(targetId);
@@ -114,8 +120,9 @@ export function ScenarioManager({
     newOrder.splice(fromIdx, 1);
     newOrder.splice(toIdx, 0, draggedItem);
     setScenarioOrder(newOrder);
+    setDropTarget(null);
   };
-  const handleDragEnd = () => setDraggedItem(null);
+  const handleDragEnd = () => { setDraggedItem(null); setDropTarget(null); };
 
   const handleCreate = () => {
     if (!newName.trim()) return;
@@ -373,19 +380,27 @@ export function ScenarioManager({
                 insight = 'Identique à la situation actuelle';
               }
 
+              const isDropTarget = dropTarget === id && draggedItem !== id;
+
               return (
                 <motion.div
                   key={id}
                   draggable
                   onDragStart={() => handleDragStart(id)}
                   onDragOver={(e) => handleDragOver(e, id)}
+                  onDrop={(e) => handleDrop(e, id)}
+                  onDragLeave={() => { if (dropTarget === id) setDropTarget(null); }}
                   onDragEnd={handleDragEnd}
-                  className={`glass-card p-4 cursor-grab active:cursor-grabbing transition-all ${
+                  className={`relative glass-card p-4 cursor-grab active:cursor-grabbing transition-all ${
                     draggedItem === id ? 'opacity-50 scale-95' : ''
-                  }`}
+                  } ${isDropTarget ? 'ring-2 ring-primary/50' : ''}`}
                   whileHover={{ y: -2 }}
                   layout
                 >
+                  {/* Drop indicator line */}
+                  {isDropTarget && (
+                    <div className="absolute -top-1 left-2 right-2 h-0.5 rounded-full bg-primary animate-pulse" />
+                  )}
                   <div className="flex items-center gap-2 mb-3">
                     <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                     <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
