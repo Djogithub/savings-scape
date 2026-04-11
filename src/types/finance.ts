@@ -140,13 +140,34 @@ export function getIncomeAmountForMonth(income: Income, year: number, month: num
 
 /**
  * Get current month's total for charges (date & season aware).
+ * Excludes one-time charges — use getCurrentMonthAllChargesTotal to include them.
  */
 export function getCurrentMonthChargesTotal(charges: Charge[]): number {
+  const now = new Date();
+  return charges
+    .filter(c => c.type !== 'one-time')
+    .reduce((sum, c) => sum + getChargeAmountForMonth(c, now.getFullYear(), now.getMonth()), 0);
+}
+
+/**
+ * Get current month's total for incomes (date aware).
+ * Excludes non-recurring incomes — use getCurrentMonthAllIncomesTotal to include them.
+ */
+export function getCurrentMonthIncomesTotal(incomes: Income[]): number {
+  const now = new Date();
+  return incomes
+    .filter(i => i.isRecurring)
+    .reduce((sum, i) => sum + getIncomeAmountForMonth(i, now.getFullYear(), now.getMonth()), 0);
+}
+
+/** Includes ALL charges for current month (recurring + one-time). */
+export function getCurrentMonthAllChargesTotal(charges: Charge[]): number {
   const now = new Date();
   return charges.reduce((sum, c) => sum + getChargeAmountForMonth(c, now.getFullYear(), now.getMonth()), 0);
 }
 
-export function getCurrentMonthIncomesTotal(incomes: Income[]): number {
+/** Includes ALL incomes for current month (recurring + one-time). */
+export function getCurrentMonthAllIncomesTotal(incomes: Income[]): number {
   const now = new Date();
   return incomes.reduce((sum, i) => sum + getIncomeAmountForMonth(i, now.getFullYear(), now.getMonth()), 0);
 }

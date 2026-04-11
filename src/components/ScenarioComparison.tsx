@@ -32,8 +32,16 @@ function getTotalForMonth(charges: Charge[], year: number, month: number) {
   return charges.reduce((s, c) => s + getChargeAmountForMonth(c, year, month), 0);
 }
 
+function getRecurringTotalForMonth(charges: Charge[], year: number, month: number) {
+  return charges.filter(c => c.type !== 'one-time').reduce((s, c) => s + getChargeAmountForMonth(c, year, month), 0);
+}
+
 function getIncomeTotalForMonth(incomes: Income[], year: number, month: number) {
   return incomes.reduce((s, i) => s + getIncomeAmountForMonth(i, year, month), 0);
+}
+
+function getRecurringIncomeTotalForMonth(incomes: Income[], year: number, month: number) {
+  return incomes.filter(i => i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, year, month), 0);
 }
 
 const SOFT_COLORS = [
@@ -83,13 +91,15 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
     .map(id => scenarios.find(s => s.id === id))
     .filter(Boolean) as Scenario[];
 
+  const actualRecurringCharges = getRecurringTotalForMonth(actualCharges, currentYear, currentMonth);
+  const actualRecurringIncomes = getRecurringIncomeTotalForMonth(actualIncomes, currentYear, currentMonth);
   const actualTotalCharges = getTotalForMonth(actualCharges, currentYear, currentMonth);
   const actualTotalIncomes = getIncomeTotalForMonth(actualIncomes, currentYear, currentMonth);
-  const actualBalance = actualTotalIncomes - actualTotalCharges;
+  const actualBalance = actualRecurringIncomes - actualRecurringCharges;
 
   const getScenarioBalance = (s: Scenario) => {
-    const charges = getTotalForMonth(s.charges, currentYear, currentMonth);
-    const incomes = getIncomeTotalForMonth(s.incomes, currentYear, currentMonth);
+    const charges = getRecurringTotalForMonth(s.charges, currentYear, currentMonth);
+    const incomes = getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth);
     return incomes - charges;
   };
 
@@ -264,8 +274,8 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                     };
                     const actualAnnual = computeAnnualBalance(actualCharges, actualIncomes);
                     return [
-                      { label: 'Revenus mensuels', actual: actualTotalIncomes, values: filteredScenarios.map(s => getIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
-                      { label: 'Charges mensuelles', actual: actualTotalCharges, values: filteredScenarios.map(s => getTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
+                      { label: 'Revenus mensuels', actual: actualRecurringIncomes, values: filteredScenarios.map(s => getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
+                      { label: 'Charges mensuelles', actual: actualRecurringCharges, values: filteredScenarios.map(s => getRecurringTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
                       { label: 'Solde mensuel', actual: actualBalance, values: filteredScenarios.map(s => getScenarioBalance(s)), colorClass: 'dynamic', bold: true },
                       { label: 'Solde annuel', actual: actualAnnual, values: filteredScenarios.map(s => computeAnnualBalance(s.charges, s.incomes)), colorClass: 'dynamic', bold: true },
                     ];
