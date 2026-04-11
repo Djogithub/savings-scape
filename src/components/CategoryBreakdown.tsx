@@ -181,24 +181,24 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
           )}
         </div>
 
-        {/* Income donut */}
+        {/* Charges ratio donut */}
         <div className="glass-card p-6 premium-shadow">
-          <h3 className="text-lg font-semibold tracking-tight mb-4">Revenus par type</h3>
-          {incomeData.length === 0 ? (
+          <h3 className="text-lg font-semibold tracking-tight mb-4">Part des charges dans les revenus</h3>
+          {ratioData.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-6">Aucun revenu enregistré.</p>
           ) : (
             <div className="flex flex-col items-center gap-4">
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
-                    data={incomeData}
+                    data={ratioData}
                     cx="50%" cy="50%"
                     innerRadius={65} outerRadius={110}
                     paddingAngle={2}
                     dataKey="value"
                     stroke="none"
                   >
-                    {incomeData.map((entry, idx) => (
+                    {ratioData.map((entry, idx) => (
                       <Cell key={idx} fill={entry.color} />
                     ))}
                   </Pie>
@@ -206,7 +206,7 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex flex-wrap gap-3 justify-center">
-                {incomeData.map(entry => (
+                {ratioData.map(entry => (
                   <div key={entry.name} className="flex items-center gap-1.5 text-xs">
                     <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
                     <span className="text-muted-foreground">{entry.name}</span>
@@ -215,7 +215,7 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
                 ))}
               </div>
               <div className="w-full space-y-2 mt-2">
-                {incomeData.map(entry => (
+                {ratioData.map(entry => (
                   <div key={entry.name} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
@@ -228,7 +228,13 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
                   </div>
                 ))}
               </div>
+              <div className="w-full pt-2 border-t border-border text-sm flex justify-between">
+                <span className="text-muted-foreground">Total revenus</span>
+                <span className="font-semibold">{formatCurrency(totalIncomes)}</span>
+              </div>
             </div>
+          )}
+        </div>
           )}
         </div>
       </div>
