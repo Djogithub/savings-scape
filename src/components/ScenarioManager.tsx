@@ -380,19 +380,27 @@ export function ScenarioManager({
                 insight = 'Identique à la situation actuelle';
               }
 
+              const isDropTarget = dropTarget === id && draggedItem !== id;
+
               return (
                 <motion.div
                   key={id}
                   draggable
                   onDragStart={() => handleDragStart(id)}
                   onDragOver={(e) => handleDragOver(e, id)}
+                  onDrop={(e) => handleDrop(e, id)}
+                  onDragLeave={() => { if (dropTarget === id) setDropTarget(null); }}
                   onDragEnd={handleDragEnd}
-                  className={`glass-card p-4 cursor-grab active:cursor-grabbing transition-all ${
+                  className={`relative glass-card p-4 cursor-grab active:cursor-grabbing transition-all ${
                     draggedItem === id ? 'opacity-50 scale-95' : ''
-                  }`}
+                  } ${isDropTarget ? 'ring-2 ring-primary/50' : ''}`}
                   whileHover={{ y: -2 }}
                   layout
                 >
+                  {/* Drop indicator line */}
+                  {isDropTarget && (
+                    <div className="absolute -top-1 left-2 right-2 h-0.5 rounded-full bg-primary animate-pulse" />
+                  )}
                   <div className="flex items-center gap-2 mb-3">
                     <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                     <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />

@@ -96,7 +96,7 @@ export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = 
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <AnimatePresence mode="popLayout">
           {sortedIncomes.map((income, i) => {
             const isExpanded = expandedIds.has(income.id);
