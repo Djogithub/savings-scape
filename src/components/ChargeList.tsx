@@ -205,19 +205,36 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
                           )}
 
                           {charge.totalAmount != null && (() => {
-                            let remaining = charge.totalAmount - (charge.paidAmount ?? 0);
+                            let capitalRemaining = charge.totalAmount - (charge.paidAmount ?? 0);
+                            let remainingMonths = 0;
                             if (charge.startDate && charge.amount > 0) {
                               const start = new Date(charge.startDate);
                               const now = new Date();
                               const monthsElapsed = Math.max(0, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()));
-                              remaining = Math.max(0, charge.totalAmount - (charge.paidAmount ?? 0) - (monthsElapsed * charge.amount));
+                              capitalRemaining = Math.max(0, charge.totalAmount - (charge.paidAmount ?? 0) - (monthsElapsed * charge.amount));
+                              if (charge.endDate) {
+                                const end = new Date(charge.endDate);
+                                remainingMonths = Math.max(0, (end.getFullYear() - now.getFullYear()) * 12 + (end.getMonth() - now.getMonth()) + 1);
+                              } else if (charge.amount > 0) {
+                                remainingMonths = Math.ceil(capitalRemaining / charge.amount);
+                              }
                             }
+                            // Remaining interest: monthly rate * remaining capital over remaining months (simplified linear approx)
+                            const monthlyRate = (charge.interestRate ?? 0) / 100 / 12;
+                            const remainingInterest = monthlyRate > 0 && remainingMonths > 0
+                              ? capitalRemaining * monthlyRate * (remainingMonths + 1) / 2
+                              : 0;
+                            const totalRemaining = capitalRemaining + remainingInterest;
                             return (
                               <div>
-                                <div className="text-[11px] text-muted-foreground mb-0.5">Capital restant</div>
+                                <div className="text-[11px] text-muted-foreground mb-0.5">Restant à rembourser</div>
                                 <div className="flex items-center gap-1 text-xs font-medium">
                                   <CreditCard className="h-3 w-3 text-muted-foreground" />
-                                  {formatCurrency(remaining)}
+                                  {formatCurrency(totalRemaining)}
+                                </div>
+                                <div className="text-[10px] text-muted-foreground mt-0.5">
+                                  {formatCurrency(capitalRemaining)} capital
+                                  {remainingInterest > 0 && <> + {formatCurrency(remainingInterest)} intérêts</>}
                                 </div>
                               </div>
                             );
