@@ -29,14 +29,14 @@ export function ScenarioPieChart({ charges, incomes, bare = false }: ScenarioPie
   const colorMap = CHART_COLORS;
 
   const chart = (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={220}>
       <PieChart>
         <Pie
           data={data}
           cx="50%"
           cy="50%"
-          innerRadius={60}
-          outerRadius={90}
+          innerRadius={50}
+          outerRadius={75}
           paddingAngle={3}
           dataKey="value"
           stroke="none"

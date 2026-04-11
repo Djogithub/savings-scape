@@ -300,7 +300,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
             <CardTitle className="text-base">Revenus vs Charges vs Solde</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer width="100%" height={280}>
               <BarChart data={barData} barCategoryGap="20%">
                 {barGradientDefs}
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -338,7 +338,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
             </div>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
+            <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={monthlyProjectionFiltered}>
                 <defs>
                   {allNames.map((name, i) => {
@@ -401,12 +401,12 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
             </CardHeader>
             <CardContent>
               {categoryChartType === 'histogram' ? (
-                <ResponsiveContainer width="100%" height={400}>
+                <ResponsiveContainer width="100%" height={320}>
                   <BarChart data={categoryData} layout="vertical" barCategoryGap="18%">
                     {categoryGradientDefs}
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                     <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} tickFormatter={v => `${formatCompact(v)}€`} />
-                    <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} width={120} />
+                    <YAxis type="category" dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} width={80} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
                     {allNames.map((name, i) => (
@@ -415,7 +415,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <ResponsiveContainer width="100%" height={400}>
+                <ResponsiveContainer width="100%" height={320}>
                   <RadarChart data={categoryData} cx="50%" cy="50%">
                     <PolarGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
                     <PolarAngleAxis dataKey="category" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} />

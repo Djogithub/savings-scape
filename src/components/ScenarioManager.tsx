@@ -162,7 +162,7 @@ export function ScenarioManager({
   return (
     <div className="space-y-0">
       {/* Sticky header: view toggle + scenario tabs */}
-      <div className="sticky top-[73px] z-40 bg-background/80 backdrop-blur-xl pb-4 space-y-3 -mx-6 px-6 pt-2 border-b border-border/20">
+      <div className="sticky top-[57px] sm:top-[73px] z-40 bg-background/80 backdrop-blur-xl pb-4 space-y-3 -mx-6 px-6 pt-2 border-b border-border/20">
         {/* View toggle + Create */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex gap-1 bg-muted/60 p-1 rounded-xl border border-border/40">
@@ -350,7 +350,7 @@ export function ScenarioManager({
       {view === 'compare' && (
         <div className="pt-4 space-y-6">
           {/* Draggable scenario cards with pie chart + key insight */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {effectiveOrder.map((id) => {
               const isActual = id === '__actual__';
               const scenario = isActual ? null : scenarios.find(s => s.id === id);
@@ -455,13 +455,13 @@ export function ScenarioManager({
                 transition={{ duration: 0.3 }}
                 className="space-y-5"
               >
-                <div className="rounded-xl border bg-card p-4">
+                <div className="rounded-xl border bg-card p-3 sm:p-4">
                   <h3 className="text-sm font-semibold mb-3">Répartition mensuelle</h3>
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="w-full md:w-1/2">
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="w-full sm:w-1/2 min-h-[200px]">
                       <ScenarioPieChart charges={activeScenario.charges} incomes={activeScenario.incomes} bare />
                     </div>
-                    <div className="w-full md:w-1/2 flex items-center">
+                    <div className="w-full sm:w-1/2 flex items-center">
                       <SummaryCards charges={activeScenario.charges} incomes={activeScenario.incomes} compact grid2x2 />
                     </div>
                   </div>
