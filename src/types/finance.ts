@@ -246,4 +246,6 @@ export interface Scenario {
   patrimoine: PatrimoineItem[];
   createdAt: string;
   color?: string;
+  deletedChargeOriginIds?: string[];
+  deletedIncomeOriginIds?: string[];
 }
