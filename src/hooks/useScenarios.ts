@@ -54,6 +54,9 @@ export function useScenarios() {
 
   const syncWithBase = useCallback((baseCharges: Charge[], baseIncomes: Income[], basePatrimoine: PatrimoineItem[] = []) => {
     setScenarios(prev => prev.map(scenario => {
+      const deletedChargeOrigins = new Set(scenario.deletedChargeOriginIds || []);
+      const deletedIncomeOrigins = new Set(scenario.deletedIncomeOriginIds || []);
+
       // --- Sync charges ---
       const baseChargeIds = new Set(baseCharges.map(c => c.id));
       const syncedCharges = scenario.charges.filter(sc => {
@@ -67,7 +70,7 @@ export function useScenarios() {
       });
       const existingOriginIds = new Set(syncedCharges.map(c => c.originId).filter(Boolean));
       const newCharges = baseCharges
-        .filter(c => !existingOriginIds.has(c.id))
+        .filter(c => !existingOriginIds.has(c.id) && !deletedChargeOrigins.has(c.id))
         .map(c => ({ ...c, id: crypto.randomUUID(), isProjection: true, originId: c.id }));
 
       // --- Sync incomes ---
@@ -83,12 +86,8 @@ export function useScenarios() {
       });
       const existingIncomeOriginIds = new Set(syncedIncomes.map(i => i.originId).filter(Boolean));
       const newIncomes = baseIncomes
-        .filter(i => !existingIncomeOriginIds.has(i.id))
+        .filter(i => !existingIncomeOriginIds.has(i.id) && !deletedIncomeOrigins.has(i.id))
         .map(i => ({ ...i, id: crypto.randomUUID(), isProjection: true, originId: i.id }));
-
-      // --- Sync patrimoine ---
-      // Patrimoine items from base don't have originId tracking yet, so add it
-      // For now keep scenario patrimoine as-is (user manages independently)
 
       return {
         ...scenario,
@@ -146,11 +145,13 @@ export function useScenarios() {
   }, []);
 
   const deleteChargeFromScenario = useCallback((scenarioId: string, chargeId: string) => {
-    setScenarios(prev => prev.map(s =>
-      s.id === scenarioId
-        ? { ...s, charges: s.charges.filter(c => c.id !== chargeId) }
-        : s
-    ));
+    setScenarios(prev => prev.map(s => {
+      if (s.id !== scenarioId) return s;
+      const charge = s.charges.find(c => c.id === chargeId);
+      const deletedOrigins = [...(s.deletedChargeOriginIds || [])];
+      if (charge?.originId) deletedOrigins.push(charge.originId);
+      return { ...s, charges: s.charges.filter(c => c.id !== chargeId), deletedChargeOriginIds: deletedOrigins };
+    }));
   }, []);
 
   // Income CRUD
@@ -171,11 +172,13 @@ export function useScenarios() {
   }, []);
 
   const deleteIncomeFromScenario = useCallback((scenarioId: string, incomeId: string) => {
-    setScenarios(prev => prev.map(s =>
-      s.id === scenarioId
-        ? { ...s, incomes: s.incomes.filter(i => i.id !== incomeId) }
-        : s
-    ));
+    setScenarios(prev => prev.map(s => {
+      if (s.id !== scenarioId) return s;
+      const income = s.incomes.find(i => i.id === incomeId);
+      const deletedOrigins = [...(s.deletedIncomeOriginIds || [])];
+      if (income?.originId) deletedOrigins.push(income.originId);
+      return { ...s, incomes: s.incomes.filter(i => i.id !== incomeId), deletedIncomeOriginIds: deletedOrigins };
+    }));
   }, []);
 
   // Patrimoine CRUD
