@@ -281,25 +281,34 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                       return total;
                     };
                     const actualAnnual = computeAnnualBalance(actualCharges, actualIncomes);
+                    const actualOtIncomes = getOneTimeIncomes(actualIncomes);
+                    const actualOtCharges = getOneTimeCharges(actualCharges);
                     return [
-                      { label: 'Revenus mensuels', actual: actualRecurringIncomes, values: filteredScenarios.map(s => getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
-                      { label: 'Charges mensuelles', actual: actualRecurringCharges, values: filteredScenarios.map(s => getRecurringTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
-                      { label: 'Solde mensuel', actual: actualBalance, values: filteredScenarios.map(s => getScenarioBalance(s)), colorClass: 'dynamic', bold: true },
+                      { label: 'Revenus récurrents', actual: actualRecurringIncomes, values: filteredScenarios.map(s => getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
+                      { label: 'Charges récurrentes', actual: actualRecurringCharges, values: filteredScenarios.map(s => getRecurringTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
+                      { label: 'Solde récurrent', actual: actualBalance, values: filteredScenarios.map(s => getScenarioBalance(s)), colorClass: 'dynamic', bold: true },
+                      { label: 'Revenus ponctuels', actual: actualOtIncomes, values: filteredScenarios.map(s => getOneTimeIncomes(s.incomes)), colorClass: 'text-primary', dimIfZero: true },
+                      { label: 'Charges ponctuelles', actual: actualOtCharges, values: filteredScenarios.map(s => getOneTimeCharges(s.charges)), colorClass: 'text-destructive', dimIfZero: true },
+                      { label: 'Solde ponctuel', actual: actualOtIncomes - actualOtCharges, values: filteredScenarios.map(s => getOneTimeIncomes(s.incomes) - getOneTimeCharges(s.charges)), colorClass: 'dynamic', dimIfZero: true },
                       { label: 'Solde annuel', actual: actualAnnual, values: filteredScenarios.map(s => computeAnnualBalance(s.charges, s.incomes)), colorClass: 'dynamic', bold: true },
                     ];
-                  })().map((row) => (
-                    <tr key={row.label} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
-                      <td className="py-3.5 px-5 text-muted-foreground">{row.label}</td>
-                      <td className={`py-3.5 px-5 text-right tabular-nums ${row.bold ? 'font-bold' : 'font-medium'} ${row.colorClass === 'dynamic' ? (row.actual >= 0 ? 'text-primary' : 'text-destructive') : row.colorClass}`}>
-                        {formatCurrency(row.actual)}
-                      </td>
-                      {row.values.map((v, vi) => (
-                        <td key={vi} className={`py-3.5 px-5 text-right tabular-nums ${row.bold ? 'font-bold' : 'font-medium'} ${row.colorClass === 'dynamic' ? (v >= 0 ? 'text-primary' : 'text-destructive') : row.colorClass}`}>
-                          {formatCurrency(v)}
+                  })().filter((row) => !row.dimIfZero || row.actual !== 0 || row.values.some(v => v !== 0)).map((row, ri, arr) => {
+                    // Add separator before "Revenus ponctuels"
+                    const showSep = row.label === 'Revenus ponctuels';
+                    return (
+                      <tr key={row.label} className={`border-b border-border/30 hover:bg-muted/20 transition-colors ${showSep ? 'border-t-2 border-t-border/60' : ''}`}>
+                        <td className={`py-3.5 px-5 text-muted-foreground ${row.dimIfZero ? 'italic' : ''}`}>{row.label}</td>
+                        <td className={`py-3.5 px-5 text-right tabular-nums ${row.bold ? 'font-bold' : 'font-medium'} ${row.colorClass === 'dynamic' ? (row.actual >= 0 ? 'text-primary' : 'text-destructive') : row.colorClass}`}>
+                          {formatCurrency(row.actual)}
                         </td>
-                      ))}
-                    </tr>
-                  ))}
+                        {row.values.map((v, vi) => (
+                          <td key={vi} className={`py-3.5 px-5 text-right tabular-nums ${row.bold ? 'font-bold' : 'font-medium'} ${row.colorClass === 'dynamic' ? (v >= 0 ? 'text-primary' : 'text-destructive') : row.colorClass}`}>
+                            {formatCurrency(v)}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
                   <tr className="hover:bg-muted/20 transition-colors">
                     <td className="py-3.5 px-5 text-muted-foreground">Écart vs actuel</td>
                     <td className="py-3.5 px-5 text-right text-muted-foreground">—</td>
