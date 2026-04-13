@@ -281,10 +281,15 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                       return total;
                     };
                     const actualAnnual = computeAnnualBalance(actualCharges, actualIncomes);
+                    const actualOtIncomes = getOneTimeIncomes(actualIncomes);
+                    const actualOtCharges = getOneTimeCharges(actualCharges);
                     return [
-                      { label: 'Revenus mensuels', actual: actualRecurringIncomes, values: filteredScenarios.map(s => getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
-                      { label: 'Charges mensuelles', actual: actualRecurringCharges, values: filteredScenarios.map(s => getRecurringTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
-                      { label: 'Solde mensuel', actual: actualBalance, values: filteredScenarios.map(s => getScenarioBalance(s)), colorClass: 'dynamic', bold: true },
+                      { label: 'Revenus récurrents', actual: actualRecurringIncomes, values: filteredScenarios.map(s => getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth)), colorClass: 'text-primary' },
+                      { label: 'Charges récurrentes', actual: actualRecurringCharges, values: filteredScenarios.map(s => getRecurringTotalForMonth(s.charges, currentYear, currentMonth)), colorClass: 'text-destructive' },
+                      { label: 'Solde récurrent', actual: actualBalance, values: filteredScenarios.map(s => getScenarioBalance(s)), colorClass: 'dynamic', bold: true },
+                      { label: 'Revenus ponctuels', actual: actualOtIncomes, values: filteredScenarios.map(s => getOneTimeIncomes(s.incomes)), colorClass: 'text-primary', dimIfZero: true },
+                      { label: 'Charges ponctuelles', actual: actualOtCharges, values: filteredScenarios.map(s => getOneTimeCharges(s.charges)), colorClass: 'text-destructive', dimIfZero: true },
+                      { label: 'Solde ponctuel', actual: actualOtIncomes - actualOtCharges, values: filteredScenarios.map(s => getOneTimeIncomes(s.incomes) - getOneTimeCharges(s.charges)), colorClass: 'dynamic', dimIfZero: true },
                       { label: 'Solde annuel', actual: actualAnnual, values: filteredScenarios.map(s => computeAnnualBalance(s.charges, s.incomes)), colorClass: 'dynamic', bold: true },
                     ];
                   })().map((row) => (
