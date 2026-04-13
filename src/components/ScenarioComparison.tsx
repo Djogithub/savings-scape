@@ -309,6 +309,26 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                       </tr>
                     );
                   })}
+                  {/* Total global */}
+                  {(() => {
+                    const actualTotal = (actualRecurringIncomes + getOneTimeIncomes(actualIncomes)) - (actualRecurringCharges + getOneTimeCharges(actualCharges));
+                    return (
+                      <tr className="border-t-2 border-t-border/60 bg-muted/20 hover:bg-muted/30 transition-colors">
+                        <td className="py-3.5 px-5 font-bold text-foreground">Total global</td>
+                        <td className={`py-3.5 px-5 text-right font-bold tabular-nums ${actualTotal >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                          {formatCurrency(actualTotal)}
+                        </td>
+                        {filteredScenarios.map((s) => {
+                          const total = (getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth) + getOneTimeIncomes(s.incomes)) - (getRecurringTotalForMonth(s.charges, currentYear, currentMonth) + getOneTimeCharges(s.charges));
+                          return (
+                            <td key={s.id} className={`py-3.5 px-5 text-right font-bold tabular-nums ${total >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                              {formatCurrency(total)}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })()}
                   <tr className="hover:bg-muted/20 transition-colors">
                     <td className="py-3.5 px-5 text-muted-foreground">Écart vs actuel</td>
                     <td className="py-3.5 px-5 text-right text-muted-foreground">—</td>
