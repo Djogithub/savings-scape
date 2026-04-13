@@ -308,6 +308,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                         ))}
                       </tr>
                     );
+                  })}
                   {/* Total global */}
                   {(() => {
                     const actualTotal = (actualRecurringIncomes + getOneTimeIncomes(actualIncomes)) - (actualRecurringCharges + getOneTimeCharges(actualCharges));
