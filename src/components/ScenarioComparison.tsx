@@ -342,6 +342,20 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                 <Bar dataKey="Solde" fill="url(#bar-grad-solde)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            {barData.some((d: any) => d.otIncomes > 0 || d.otCharges > 0) && (
+              <div className="mt-3 pt-3 border-t border-border/40 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Ponctuels ce mois-ci :</p>
+                <div className="flex flex-wrap gap-x-6 gap-y-1">
+                  {barData.map((d: any) => (
+                    (d.otIncomes > 0 || d.otCharges > 0) && (
+                      <div key={d.name} className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">{d.name}</span> : rev. {formatCurrency(d.otIncomes)} · ch. {formatCurrency(d.otCharges)} · solde <span className={d.otSolde >= 0 ? 'text-primary' : 'text-destructive'}>{formatCurrency(d.otSolde)}</span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
