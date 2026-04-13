@@ -292,19 +292,23 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                       { label: 'Solde ponctuel', actual: actualOtIncomes - actualOtCharges, values: filteredScenarios.map(s => getOneTimeIncomes(s.incomes) - getOneTimeCharges(s.charges)), colorClass: 'dynamic', dimIfZero: true },
                       { label: 'Solde annuel', actual: actualAnnual, values: filteredScenarios.map(s => computeAnnualBalance(s.charges, s.incomes)), colorClass: 'dynamic', bold: true },
                     ];
-                  })().map((row) => (
-                    <tr key={row.label} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
-                      <td className="py-3.5 px-5 text-muted-foreground">{row.label}</td>
-                      <td className={`py-3.5 px-5 text-right tabular-nums ${row.bold ? 'font-bold' : 'font-medium'} ${row.colorClass === 'dynamic' ? (row.actual >= 0 ? 'text-primary' : 'text-destructive') : row.colorClass}`}>
-                        {formatCurrency(row.actual)}
-                      </td>
-                      {row.values.map((v, vi) => (
-                        <td key={vi} className={`py-3.5 px-5 text-right tabular-nums ${row.bold ? 'font-bold' : 'font-medium'} ${row.colorClass === 'dynamic' ? (v >= 0 ? 'text-primary' : 'text-destructive') : row.colorClass}`}>
-                          {formatCurrency(v)}
+                  })().filter((row) => !row.dimIfZero || row.actual !== 0 || row.values.some(v => v !== 0)).map((row, ri, arr) => {
+                    // Add separator before "Revenus ponctuels"
+                    const showSep = row.label === 'Revenus ponctuels';
+                    return (
+                      <tr key={row.label} className={`border-b border-border/30 hover:bg-muted/20 transition-colors ${showSep ? 'border-t-2 border-t-border/60' : ''}`}>
+                        <td className={`py-3.5 px-5 text-muted-foreground ${row.dimIfZero ? 'italic' : ''}`}>{row.label}</td>
+                        <td className={`py-3.5 px-5 text-right tabular-nums ${row.bold ? 'font-bold' : 'font-medium'} ${row.colorClass === 'dynamic' ? (row.actual >= 0 ? 'text-primary' : 'text-destructive') : row.colorClass}`}>
+                          {formatCurrency(row.actual)}
                         </td>
-                      ))}
-                    </tr>
-                  ))}
+                        {row.values.map((v, vi) => (
+                          <td key={vi} className={`py-3.5 px-5 text-right tabular-nums ${row.bold ? 'font-bold' : 'font-medium'} ${row.colorClass === 'dynamic' ? (v >= 0 ? 'text-primary' : 'text-destructive') : row.colorClass}`}>
+                            {formatCurrency(v)}
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
                   <tr className="hover:bg-muted/20 transition-colors">
                     <td className="py-3.5 px-5 text-muted-foreground">Écart vs actuel</td>
                     <td className="py-3.5 px-5 text-right text-muted-foreground">—</td>
