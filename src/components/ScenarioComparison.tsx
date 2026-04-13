@@ -123,17 +123,25 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
     );
   }
 
+  const getOneTimeCharges = (charges: Charge[]) => charges.filter(c => c.type === 'one-time').reduce((s, c) => s + getChargeAmountForMonth(c, currentYear, currentMonth), 0);
+  const getOneTimeIncomes = (incomes: Income[]) => incomes.filter(i => !i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, currentYear, currentMonth), 0);
+
   const barData = effectiveOrder.map(id => {
     if (id === '__actual__') {
-      return { name: 'Actuel', Revenus: actualTotalIncomes, Charges: actualTotalCharges, Solde: actualBalance };
+      const otCharges = getOneTimeCharges(actualCharges);
+      const otIncomes = getOneTimeIncomes(actualIncomes);
+      return { name: 'Actuel', Revenus: actualRecurringIncomes, Charges: actualRecurringCharges, Solde: actualBalance, otIncomes, otCharges, otSolde: otIncomes - otCharges };
     }
     const s = filteredScenarios.find(sc => sc.id === id);
     if (!s) return null;
-    const sCharges = getTotalForMonth(s.charges, currentYear, currentMonth);
-    const sIncomes = getIncomeTotalForMonth(s.incomes, currentYear, currentMonth);
+    const sRecCharges = getRecurringTotalForMonth(s.charges, currentYear, currentMonth);
+    const sRecIncomes = getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth);
+    const otCharges = getOneTimeCharges(s.charges);
+    const otIncomes = getOneTimeIncomes(s.incomes);
     return {
       name: s.name.length > 12 ? s.name.slice(0, 12) + '…' : s.name,
-      Revenus: sIncomes, Charges: sCharges, Solde: sIncomes - sCharges,
+      Revenus: sRecIncomes, Charges: sRecCharges, Solde: sRecIncomes - sRecCharges,
+      otIncomes, otCharges, otSolde: otIncomes - otCharges,
     };
   }).filter(Boolean);
 
@@ -334,6 +342,20 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
                 <Bar dataKey="Solde" fill="url(#bar-grad-solde)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            {barData.some((d: any) => d.otIncomes > 0 || d.otCharges > 0) && (
+              <div className="mt-3 pt-3 border-t border-border/40 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Ponctuels ce mois-ci :</p>
+                <div className="flex flex-wrap gap-x-6 gap-y-1">
+                  {barData.map((d: any) => (
+                    (d.otIncomes > 0 || d.otCharges > 0) && (
+                      <div key={d.name} className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">{d.name}</span> : rev. {formatCurrency(d.otIncomes)} · ch. {formatCurrency(d.otCharges)} · solde <span className={d.otSolde >= 0 ? 'text-primary' : 'text-destructive'}>{formatCurrency(d.otSolde)}</span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
