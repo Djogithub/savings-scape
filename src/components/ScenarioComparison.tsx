@@ -123,17 +123,25 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
     );
   }
 
+  const getOneTimeCharges = (charges: Charge[]) => charges.filter(c => c.type === 'one-time').reduce((s, c) => s + getChargeAmountForMonth(c, currentYear, currentMonth), 0);
+  const getOneTimeIncomes = (incomes: Income[]) => incomes.filter(i => !i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, currentYear, currentMonth), 0);
+
   const barData = effectiveOrder.map(id => {
     if (id === '__actual__') {
-      return { name: 'Actuel', Revenus: actualTotalIncomes, Charges: actualTotalCharges, Solde: actualBalance };
+      const otCharges = getOneTimeCharges(actualCharges);
+      const otIncomes = getOneTimeIncomes(actualIncomes);
+      return { name: 'Actuel', Revenus: actualRecurringIncomes, Charges: actualRecurringCharges, Solde: actualBalance, otIncomes, otCharges, otSolde: otIncomes - otCharges };
     }
     const s = filteredScenarios.find(sc => sc.id === id);
     if (!s) return null;
-    const sCharges = getTotalForMonth(s.charges, currentYear, currentMonth);
-    const sIncomes = getIncomeTotalForMonth(s.incomes, currentYear, currentMonth);
+    const sRecCharges = getRecurringTotalForMonth(s.charges, currentYear, currentMonth);
+    const sRecIncomes = getRecurringIncomeTotalForMonth(s.incomes, currentYear, currentMonth);
+    const otCharges = getOneTimeCharges(s.charges);
+    const otIncomes = getOneTimeIncomes(s.incomes);
     return {
       name: s.name.length > 12 ? s.name.slice(0, 12) + '…' : s.name,
-      Revenus: sIncomes, Charges: sCharges, Solde: sIncomes - sCharges,
+      Revenus: sRecIncomes, Charges: sRecCharges, Solde: sRecIncomes - sRecCharges,
+      otIncomes, otCharges, otSolde: otIncomes - otCharges,
     };
   }).filter(Boolean);
 
