@@ -248,6 +248,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
     <div className="space-y-6">
 
       {/* Summary table */}
+      {!hideTable && (
       <motion.div custom={3} initial="hidden" animate="visible" variants={cardVariants}>
         <Card className="glass-card overflow-hidden">
           <CardHeader className="pb-2"><CardTitle className="text-base">Tableau comparatif</CardTitle></CardHeader>
