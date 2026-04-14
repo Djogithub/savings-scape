@@ -389,71 +389,126 @@ export function ScenarioManager({
       {/* Comparison view */}
       {view === 'compare' && (
         <div className="pt-4 space-y-6">
-          {/* Draggable scenario cards with pie chart + key insight */}
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {effectiveOrder.map((id) => {
-              const isActual = id === '__actual__';
-              const scenario = isActual ? null : scenarios.find(s => s.id === id);
-              if (!isActual && (!scenario || !selectedScenarios.includes(id))) return null;
-              const label = isActual ? 'Actuel' : scenario!.name;
-              const charges = isActual ? actualCharges : scenario!.charges;
-              const incomes = isActual ? actualIncomes : scenario!.incomes;
-              const totalCharges = getCurrentMonthChargesTotal(charges);
-              const totalIncomes = getCurrentMonthIncomesTotal(incomes);
-              const balance = totalIncomes - totalCharges;
-              const color = colorMap[id] || softActualColor;
-
-              // Compute key insight vs actual
-              const actualBal = getCurrentMonthIncomesTotal(actualIncomes) - getCurrentMonthChargesTotal(actualCharges);
-              const diff = balance - actualBal;
-              let insight = '';
-              let insightColor = 'text-muted-foreground';
-              if (isActual) {
-                insight = 'Situation de référence';
-              } else if (diff > 0) {
-                insight = `+${diff.toLocaleString('fr-FR')} €/mois vs actuel`;
-                insightColor = 'text-primary';
-              } else if (diff < 0) {
-                insight = `${diff.toLocaleString('fr-FR')} €/mois vs actuel`;
-                insightColor = 'text-destructive';
-              } else {
-                insight = 'Identique à la situation actuelle';
-              }
-
-              const isDropTarget = dropTarget === id && draggedItem !== id;
-
-              return (
-                <motion.div
-                  key={id}
-                  draggable
-                  onDragStart={() => handleDragStart(id)}
-                  onDragOver={(e) => handleDragOver(e, id)}
-                  onDrop={(e) => handleDrop(e, id)}
-                  onDragLeave={() => { if (dropTarget === id) setDropTarget(null); }}
-                  onDragEnd={handleDragEnd}
-                  className={`relative glass-card p-4 cursor-grab active:cursor-grabbing transition-all ${
-                    draggedItem === id ? 'opacity-50 scale-95' : ''
-                  } ${isDropTarget ? 'ring-2 ring-primary/50' : ''}`}
-                  whileHover={{ y: -2 }}
-                  layout
-                >
-                  {/* Drop indicator line */}
-                  {isDropTarget && (
-                    <div className="absolute -top-1 left-2 right-2 h-0.5 rounded-full bg-primary animate-pulse" />
-                  )}
-                  <div className="flex items-center gap-2 mb-3">
-                    <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-                    <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                    <span className="text-sm font-semibold truncate">{label}</span>
-                  </div>
-                  <ScenarioPieChart charges={charges} incomes={incomes} bare />
-                  <div className={`mt-3 text-xs font-medium text-center ${insightColor}`}>
-                    {insight}
-                  </div>
-                </motion.div>
-              );
-            })}
+          {/* Switch cards / table */}
+          <div className="flex items-center gap-3">
+            <Label htmlFor="compare-view-switch" className={`text-sm font-medium ${compareView === 'cards' ? 'text-foreground' : 'text-muted-foreground'}`}>Cards</Label>
+            <Switch
+              id="compare-view-switch"
+              checked={compareView === 'table'}
+              onCheckedChange={(checked) => setCompareView(checked ? 'table' : 'cards')}
+            />
+            <Label htmlFor="compare-view-switch" className={`text-sm font-medium ${compareView === 'table' ? 'text-foreground' : 'text-muted-foreground'}`}>Tableau</Label>
           </div>
+
+          {compareView === 'cards' ? (
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {effectiveOrder.map((id) => {
+                const isActual = id === '__actual__';
+                const scenario = isActual ? null : scenarios.find(s => s.id === id);
+                if (!isActual && (!scenario || !selectedScenarios.includes(id))) return null;
+                const label = isActual ? 'Actuel' : scenario!.name;
+                const charges = isActual ? actualCharges : scenario!.charges;
+                const incomes = isActual ? actualIncomes : scenario!.incomes;
+                const color = colorMap[id] || softActualColor;
+
+                const now = new Date();
+                const cy = now.getFullYear();
+                const cm = now.getMonth();
+
+                const recCharges = charges.filter(c => c.type !== 'one-time').reduce((s, c) => s + getChargeAmountForMonth(c, cy, cm), 0);
+                const recIncomes = incomes.filter(i => i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, cy, cm), 0);
+                const otCharges = charges.filter(c => c.type === 'one-time').reduce((s, c) => s + getChargeAmountForMonth(c, cy, cm), 0);
+                const otIncomes = incomes.filter(i => !i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, cy, cm), 0);
+                const recBalance = recIncomes - recCharges;
+                const totalGlobal = (recIncomes + otIncomes) - (recCharges + otCharges);
+
+                // Écart vs actuel
+                const actualRecI = actualIncomes.filter(i => i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, cy, cm), 0);
+                const actualRecC = actualCharges.filter(c => c.type !== 'one-time').reduce((s, c) => s + getChargeAmountForMonth(c, cy, cm), 0);
+                const actualBal = actualRecI - actualRecC;
+                const diff = recBalance - actualBal;
+
+                const fmt = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
+
+                const isDropTarget_ = dropTarget === id && draggedItem !== id;
+
+                return (
+                  <motion.div
+                    key={id}
+                    draggable
+                    onDragStart={() => handleDragStart(id)}
+                    onDragOver={(e) => handleDragOver(e, id)}
+                    onDrop={(e) => handleDrop(e, id)}
+                    onDragLeave={() => { if (dropTarget === id) setDropTarget(null); }}
+                    onDragEnd={handleDragEnd}
+                    className={`relative glass-card p-4 cursor-grab active:cursor-grabbing transition-all ${
+                      draggedItem === id ? 'opacity-50 scale-95' : ''
+                    } ${isDropTarget_ ? 'ring-2 ring-primary/50' : ''}`}
+                    whileHover={{ y: -2 }}
+                    layout
+                  >
+                    {isDropTarget_ && (
+                      <div className="absolute -top-1 left-2 right-2 h-0.5 rounded-full bg-primary animate-pulse" />
+                    )}
+                    <div className="flex items-center gap-2 mb-3">
+                      <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                      <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                      <span className="text-sm font-semibold truncate">{label}</span>
+                    </div>
+                    <ScenarioPieChart charges={charges} incomes={incomes} bare />
+
+                    {/* Table data integrated */}
+                    <div className="mt-3 pt-3 border-t border-border/40 space-y-1.5 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Rev. récurrents</span>
+                        <span className="font-medium text-primary tabular-nums">{fmt(recIncomes)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Ch. récurrentes</span>
+                        <span className="font-medium text-destructive tabular-nums">{fmt(recCharges)}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold">
+                        <span>Solde récurrent</span>
+                        <span className={`tabular-nums ${recBalance >= 0 ? 'text-primary' : 'text-destructive'}`}>{fmt(recBalance)}</span>
+                      </div>
+
+                      {(otIncomes > 0 || otCharges > 0) && (
+                        <>
+                          <div className="h-px bg-border/30 my-1" />
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground italic">Rev. ponctuels</span>
+                            <span className="font-medium text-primary tabular-nums">{fmt(otIncomes)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground italic">Ch. ponctuelles</span>
+                            <span className="font-medium text-destructive tabular-nums">{fmt(otCharges)}</span>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="h-px bg-border/50 my-1" />
+                      <div className="flex justify-between font-bold">
+                        <span>Total global</span>
+                        <span className={`tabular-nums ${totalGlobal >= 0 ? 'text-primary' : 'text-destructive'}`}>{fmt(totalGlobal)}</span>
+                      </div>
+
+                      {!isActual && (
+                        <div className="flex justify-between pt-1">
+                          <span className="text-muted-foreground">Écart vs actuel</span>
+                          <span className={`font-semibold tabular-nums inline-flex items-center gap-0.5 ${diff >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                            {diff >= 0 ? '+' : ''}{fmt(diff)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          ) : (
+            /* Table view — reuse ScenarioComparison which already has the table */
+            null
+          )}
 
           <ScenarioComparison
             scenarios={scenarios}
@@ -461,6 +516,7 @@ export function ScenarioManager({
             actualIncomes={actualIncomes}
             selectedScenarios={selectedScenarios}
             effectiveOrder={effectiveOrder}
+            hideTable={compareView === 'cards'}
           />
         </div>
       )}
