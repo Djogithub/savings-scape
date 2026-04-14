@@ -64,6 +64,9 @@ interface ScenarioManagerProps {
   onAddPatrimoine: (scenarioId: string, item: Omit<PatrimoineItem, 'id'>) => void;
   onUpdatePatrimoine: (scenarioId: string, itemId: string, updates: Partial<PatrimoineItem>) => void;
   onDeletePatrimoine: (scenarioId: string, itemId: string) => void;
+  onCopyChargeToPersonal?: (charge: Charge) => void;
+  onCopyIncomeToPersonal?: (income: Income) => void;
+  onCopyPatrimoineToPersonal?: (item: PatrimoineItem) => void;
 }
 
 type CreateSource = 'situation' | 'scenario' | 'empty';
@@ -74,6 +77,7 @@ export function ScenarioManager({
   onAddCharge, onUpdateCharge, onDeleteCharge,
   onAddIncome, onUpdateIncome, onDeleteIncome,
   onAddPatrimoine, onUpdatePatrimoine, onDeletePatrimoine,
+  onCopyChargeToPersonal, onCopyIncomeToPersonal, onCopyPatrimoineToPersonal,
 }: ScenarioManagerProps) {
   const [activeScenarioId, setActiveScenarioId] = useState<string | null>(scenarios[0]?.id ?? null);
   const [newName, setNewName] = useState('');
@@ -578,6 +582,11 @@ export function ScenarioManager({
                       onAdd={(c) => onAddCharge(activeScenario.id, c)}
                       isProjection
                       storageKey={`charge-order-${activeScenario.id}`}
+                      copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
+                      isPersonal={false}
+                      currentScenarioId={activeScenario.id}
+                      onCopyToPersonal={onCopyChargeToPersonal}
+                      onCopyToScenario={(sid, charge) => onAddCharge(sid, charge)}
                     />
                   </CollapsibleContent>
                 </Collapsible>
@@ -602,6 +611,11 @@ export function ScenarioManager({
                       onAdd={(i) => onAddIncome(activeScenario.id, i)}
                       isProjection
                       storageKey={`income-order-${activeScenario.id}`}
+                      copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
+                      isPersonal={false}
+                      currentScenarioId={activeScenario.id}
+                      onCopyToPersonal={onCopyIncomeToPersonal}
+                      onCopyToScenario={(sid, income) => onAddIncome(sid, income)}
                     />
                   </CollapsibleContent>
                 </Collapsible>
@@ -625,6 +639,11 @@ export function ScenarioManager({
                       onUpdate={(pid, u) => onUpdatePatrimoine(activeScenario.id, pid, u)}
                       onAdd={(p) => onAddPatrimoine(activeScenario.id, p)}
                       storageKey={`patrimoine-order-${activeScenario.id}`}
+                      copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
+                      isPersonal={false}
+                      currentScenarioId={activeScenario.id}
+                      onCopyToPersonal={onCopyPatrimoineToPersonal}
+                      onCopyToScenario={(sid, item) => onAddPatrimoine(sid, item)}
                     />
                   </CollapsibleContent>
                 </Collapsible>

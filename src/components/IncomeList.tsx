@@ -6,6 +6,7 @@ import { Trash2, Edit2, Plus, Minus, GripVertical } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { IncomeForm } from './IncomeForm';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CopyToDropdown, CopyTarget } from './CopyToDropdown';
 
 interface IncomeListProps {
   incomes: Income[];
@@ -14,6 +15,11 @@ interface IncomeListProps {
   onAdd?: (income: Omit<Income, 'id'>) => void;
   isProjection?: boolean;
   storageKey?: string;
+  copyTargets?: CopyTarget[];
+  isPersonal?: boolean;
+  currentScenarioId?: string;
+  onCopyToPersonal?: (income: Income) => void;
+  onCopyToScenario?: (scenarioId: string, income: Income) => void;
 }
 
 function formatCurrency(n: number) {
@@ -49,7 +55,7 @@ function useItemOrder(key: string, ids: string[]) {
   return { effectiveOrder, setOrder };
 }
 
-export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = false, storageKey = 'income-order' }: IncomeListProps) {
+export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = false, storageKey = 'income-order', copyTargets = [], isPersonal = true, currentScenarioId, onCopyToPersonal, onCopyToScenario }: IncomeListProps) {
   const totalMonthly = incomes.reduce((sum, i) => sum + i.amount, 0);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -177,6 +183,16 @@ export function IncomeList({ incomes, onDelete, onUpdate, onAdd, isProjection = 
 
                         {/* Actions */}
                         <div className="flex justify-end gap-1 pt-1">
+                          {copyTargets.length > 0 && onCopyToPersonal && onCopyToScenario && (
+                            <CopyToDropdown
+                              targets={copyTargets}
+                              isPersonal={isPersonal}
+                              currentScenarioId={currentScenarioId}
+                              onCopyToPersonal={() => onCopyToPersonal(income)}
+                              onCopyToScenario={(sid) => onCopyToScenario(sid, income)}
+                              itemLabel={income.name}
+                            />
+                          )}
                           {onUpdate && onAdd && (
                             <IncomeForm
                               editIncome={income}

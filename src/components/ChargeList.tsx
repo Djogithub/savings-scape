@@ -7,6 +7,7 @@ import { Trash2, Edit2, Calendar, CreditCard, Plus, Minus, GripVertical } from '
 import { ChargeForm } from './ChargeForm';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CopyToDropdown, CopyTarget } from './CopyToDropdown';
 
 interface ChargeListProps {
   charges: Charge[];
@@ -15,6 +16,11 @@ interface ChargeListProps {
   isProjection?: boolean;
   onAdd: (charge: Omit<Charge, 'id'>) => void;
   storageKey?: string;
+  copyTargets?: CopyTarget[];
+  isPersonal?: boolean;
+  currentScenarioId?: string;
+  onCopyToPersonal?: (charge: Charge) => void;
+  onCopyToScenario?: (scenarioId: string, charge: Charge) => void;
 }
 
 function formatCurrency(n: number) {
@@ -70,7 +76,7 @@ function useItemOrder(key: string, ids: string[]) {
   return { effectiveOrder, setOrder };
 }
 
-export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, onAdd, storageKey = 'charge-order' }: ChargeListProps) {
+export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, onAdd, storageKey = 'charge-order', copyTargets = [], isPersonal = true, currentScenarioId, onCopyToPersonal, onCopyToScenario }: ChargeListProps) {
   const totalMonthly = getCurrentMonthChargesTotal(charges);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -315,6 +321,16 @@ export function ChargeList({ charges, onDelete, onUpdate, isProjection = false, 
 
                         {/* Actions */}
                         <div className="flex justify-end gap-1 pt-1">
+                          {copyTargets.length > 0 && onCopyToPersonal && onCopyToScenario && (
+                            <CopyToDropdown
+                              targets={copyTargets}
+                              isPersonal={isPersonal}
+                              currentScenarioId={currentScenarioId}
+                              onCopyToPersonal={() => onCopyToPersonal(charge)}
+                              onCopyToScenario={(sid) => onCopyToScenario(sid, charge)}
+                              itemLabel={charge.name}
+                            />
+                          )}
                           <ChargeForm
                             editCharge={charge}
                             onSubmit={onAdd}
