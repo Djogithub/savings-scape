@@ -352,6 +352,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
           </CardContent>
         </Card>
       </motion.div>
+      )}
 
       {/* Bar chart */}
       <motion.div custom={4} initial="hidden" animate="visible" variants={cardVariants}>
