@@ -17,6 +17,7 @@ interface ScenarioComparisonProps {
   actualIncomes: Income[];
   selectedScenarios: string[];
   effectiveOrder: string[];
+  hideTable?: boolean;
 }
 
 function formatCurrency(n: number) {
