@@ -247,6 +247,8 @@ const Index = () => {
                     </div>
                   </div>
 
+                  <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
+
                   <div className="space-y-6">
                     <TimelineChart charges={actualCharges} incomes={actualIncomes} />
                   </div>

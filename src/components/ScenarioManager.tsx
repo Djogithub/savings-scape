@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { CategoryBreakdown } from './CategoryBreakdown';
 import { Scenario, Charge, Income, PatrimoineItem, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -647,6 +648,7 @@ export function ScenarioManager({
                     />
                   </CollapsibleContent>
                 </Collapsible>
+                <CategoryBreakdown charges={activeScenario.charges} incomes={activeScenario.incomes} />
               </div>
           )}
         </div>
