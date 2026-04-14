@@ -1,8 +1,7 @@
-import { ListChecks, PieChart, GitCompare } from 'lucide-react';
+import { ListChecks, GitCompare } from 'lucide-react';
 
 const items = [
   { title: 'Situation', value: 'actual', icon: ListChecks },
-  { title: 'Catégories', value: 'categories', icon: PieChart },
   { title: 'Scénarios', value: 'projections', icon: GitCompare },
 ];
 

@@ -15,7 +15,7 @@ import { PatrimoineForm } from '@/components/PatrimoineForm';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 import { Button } from '@/components/ui/button';
-import { Download, Upload, Sun, Moon, Wallet, ChevronDown, ListChecks, PieChart, GitCompare } from 'lucide-react';
+import { Download, Upload, Sun, Moon, Wallet, ChevronDown, ListChecks, GitCompare } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { useSkin } from '@/hooks/useSkin';
@@ -35,7 +35,6 @@ const tabContentVariants = {
 
 const navItems = [
   { title: 'Situation', value: 'actual', icon: ListChecks },
-  { title: 'Catégories', value: 'categories', icon: PieChart },
   { title: 'Scénarios', value: 'projections', icon: GitCompare },
 ];
 
@@ -248,19 +247,14 @@ const Index = () => {
                     </div>
                   </div>
 
+                  <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
+
                   <div className="space-y-6">
                     <TimelineChart charges={actualCharges} incomes={actualIncomes} />
                   </div>
                 </div>
               )}
 
-              {activeTab === 'categories' && (
-                <div className="space-y-6">
-                  <h1 className="text-2xl font-bold tracking-tight">Catégories</h1>
-                  <p className="text-sm text-muted-foreground -mt-4">Répartition de vos dépenses et revenus par catégorie.</p>
-                  <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
-                </div>
-              )}
 
               {activeTab === 'projections' && (
                 <div className="space-y-6">
