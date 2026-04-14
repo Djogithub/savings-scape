@@ -6,6 +6,7 @@ import { Trash2, Edit2, TrendingUp, Plus, Minus, GripVertical } from 'lucide-rea
 import { PatrimoineForm } from './PatrimoineForm';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CopyToDropdown, CopyTarget } from './CopyToDropdown';
 
 interface PatrimoineListProps {
   items: PatrimoineItem[];
@@ -13,6 +14,11 @@ interface PatrimoineListProps {
   onUpdate: (id: string, updates: Partial<PatrimoineItem>) => void;
   onAdd: (item: Omit<PatrimoineItem, 'id'>) => void;
   storageKey?: string;
+  copyTargets?: CopyTarget[];
+  isPersonal?: boolean;
+  currentScenarioId?: string;
+  onCopyToPersonal?: (item: PatrimoineItem) => void;
+  onCopyToScenario?: (scenarioId: string, item: PatrimoineItem) => void;
 }
 
 function formatCurrency(n: number) {
@@ -84,7 +90,7 @@ function useItemOrder(key: string, ids: string[]) {
   return { effectiveOrder, setOrder };
 }
 
-export function PatrimoineList({ items, onDelete, onUpdate, onAdd, storageKey = 'patrimoine-order' }: PatrimoineListProps) {
+export function PatrimoineList({ items, onDelete, onUpdate, onAdd, storageKey = 'patrimoine-order', copyTargets = [], isPersonal = true, currentScenarioId, onCopyToPersonal, onCopyToScenario }: PatrimoineListProps) {
   const totalValue = items.reduce((sum, i) => sum + getProjectedValue(i), 0);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -224,6 +230,16 @@ export function PatrimoineList({ items, onDelete, onUpdate, onAdd, storageKey = 
 
                         {/* Actions */}
                         <div className="flex justify-end gap-1 pt-1">
+                          {copyTargets.length > 0 && onCopyToPersonal && onCopyToScenario && (
+                            <CopyToDropdown
+                              targets={copyTargets}
+                              isPersonal={isPersonal}
+                              currentScenarioId={currentScenarioId}
+                              onCopyToPersonal={() => onCopyToPersonal(item)}
+                              onCopyToScenario={(sid) => onCopyToScenario(sid, item)}
+                              itemLabel={item.name}
+                            />
+                          )}
                           <PatrimoineForm
                             editItem={item}
                             onSubmit={onAdd}
