@@ -35,7 +35,6 @@ const tabContentVariants = {
 
 const navItems = [
   { title: 'Situation', value: 'actual', icon: ListChecks },
-  { title: 'Catégories', value: 'categories', icon: PieChart },
   { title: 'Scénarios', value: 'projections', icon: GitCompare },
 ];
 
