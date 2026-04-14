@@ -79,9 +79,6 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
   }, [charges, currentYear, currentMonth, allLabels]);
 
 
-  const totalCharges = getCurrentMonthAllChargesTotal(charges);
-  const totalIncomes = getCurrentMonthAllIncomesTotal(incomes);
-
   return (
     <div className="space-y-6">
 
