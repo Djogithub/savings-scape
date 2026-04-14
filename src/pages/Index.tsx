@@ -264,7 +264,8 @@ const Index = () => {
 
               {activeTab === 'projections' && (
                 <div className="space-y-6">
-                  <p className="text-sm text-muted-foreground">Simulez différentes situations financières.</p>
+                  <h1 className="text-2xl font-bold tracking-tight">Scénarios</h1>
+                  <p className="text-sm text-muted-foreground -mt-4">Simulez différentes situations financières.</p>
                   <ScenarioManager
                     scenarios={scenarios}
                     actualCharges={actualCharges}
