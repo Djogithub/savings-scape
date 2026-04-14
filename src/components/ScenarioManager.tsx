@@ -542,13 +542,8 @@ export function ScenarioManager({
 
           {/* Active scenario content */}
           {activeScenario && (
-            <AnimatePresence mode="wait">
-              <motion.div
+              <div
                 key={activeScenario.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.3 }}
                 className="space-y-5"
               >
                 <div className="rounded-xl border bg-card p-3 sm:p-4">
@@ -633,8 +628,7 @@ export function ScenarioManager({
                     />
                   </CollapsibleContent>
                 </Collapsible>
-              </motion.div>
-            </AnimatePresence>
+              </div>
           )}
         </div>
       )}
