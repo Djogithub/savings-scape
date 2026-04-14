@@ -1,8 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useFinanceData, exportData, importData } from '@/hooks/useFinanceData';
 import { useScenarios } from '@/hooks/useScenarios';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
 import { MobileNav } from '@/components/MobileNav';
 import { SummaryCards } from '@/components/SummaryCards';
 import { ChargeList } from '@/components/ChargeList';
@@ -17,7 +15,7 @@ import { PatrimoineForm } from '@/components/PatrimoineForm';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 import { Button } from '@/components/ui/button';
-import { Download, Upload, Sun, Moon, Wallet, ChevronDown } from 'lucide-react';
+import { Download, Upload, Sun, Moon, Wallet, ChevronDown, ListChecks, PieChart, GitCompare } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { useSkin } from '@/hooks/useSkin';
@@ -34,6 +32,12 @@ const tabContentVariants = {
   },
   exit: { opacity: 0, y: -8, filter: 'blur(4px)', transition: { duration: 0.2 } },
 };
+
+const navItems = [
+  { title: 'Situation', value: 'actual', icon: ListChecks },
+  { title: 'Catégories', value: 'categories', icon: PieChart },
+  { title: 'Scénarios', value: 'projections', icon: GitCompare },
+];
 
 const Index = () => {
   const {
@@ -121,169 +125,175 @@ const Index = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="h-screen flex flex-col w-full bg-background overflow-hidden">
-        <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
-          <div className="px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <motion.div
-                className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center"
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ type: 'spring', stiffness: 400 }}
+    <div className="h-screen flex flex-col w-full bg-background overflow-hidden">
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-card/80 backdrop-blur-xl">
+        <div className="px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <motion.div
+              className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: 'spring', stiffness: 400 }}
+            >
+              <Wallet className="h-5 w-5 text-primary" />
+            </motion.div>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold tracking-tight">MonBudget</h1>
+              <p className="text-[11px] text-muted-foreground leading-none">Gestion de comptes personnels</p>
+            </div>
+          </div>
+
+          {/* Navigation tabs - hidden on mobile (bottom nav used instead) */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
+              <Button
+                key={item.value}
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveTab(item.value)}
+                className={`gap-2 transition-colors ${
+                  activeTab === item.value
+                    ? 'bg-primary/10 text-primary font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
-                <Wallet className="h-5 w-5 text-primary" />
-              </motion.div>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight">MonBudget</h1>
-                <p className="text-[11px] text-muted-foreground leading-none">Gestion de comptes personnels</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={handleExport}>
-                <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Exporter</span>
+                <item.icon className="h-4 w-4" />
+                {item.title}
               </Button>
-              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={() => fileInputRef.current?.click()}>
-                <Upload className="h-4 w-4" />
-                <span className="hidden sm:inline">Importer</span>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-1.5">
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={handleExport}>
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">Exporter</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-4 w-4" />
+              <span className="hidden sm:inline">Importer</span>
+            </Button>
+            <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+            <div className="w-px h-5 bg-border mx-1" />
+            <SkinSelector skin={skin} setSkin={setSkin} />
+            <motion.div whileTap={{ scale: 0.9, rotate: 180 }} transition={{ duration: 0.3 }}>
+              <Button
+                variant="ghost" size="icon"
+                className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground"
+                onClick={toggleTheme}
+                title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}
+              >
+                {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </Button>
-              <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
-              <div className="w-px h-5 bg-border mx-1" />
-              <SkinSelector skin={skin} setSkin={setSkin} />
-              <motion.div whileTap={{ scale: 0.9, rotate: 180 }} transition={{ duration: 0.3 }}>
-                <Button
-                  variant="ghost" size="icon"
-                  className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground"
-                  onClick={toggleTheme}
-                  title={theme === 'light' ? 'Mode sombre' : 'Mode clair'}
-                >
-                  {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-                </Button>
-              </motion.div>
-            </div>
-          </div>
-        </header>
-
-        <div className="flex-1 flex w-full overflow-hidden" style={{ height: 'calc(100vh - 65px)' }}>
-          <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Sticky page title */}
-            <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border/40 px-3 sm:px-6 py-3">
-              <h1 className="text-xl font-bold tracking-tight">
-                {activeTab === 'actual' ? 'Situation réelle' : activeTab === 'categories' ? 'Catégories' : 'Scénarios'}
-              </h1>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-            <main className="flex-1 px-3 sm:px-6 py-4 sm:py-6 pb-32 md:pb-10 space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full">
-            <AnimatePresence mode="wait">
-              <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
-                {activeTab === 'actual' && (
-                  <div className="space-y-8">
-                    <p className="text-sm text-muted-foreground">Vue d'ensemble de vos finances actuelles.</p>
-                    <SummaryCards charges={actualCharges} incomes={actualIncomes} />
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      <div className="glass-card p-5 space-y-4">
-                        <Collapsible>
-                          <div className="flex items-center justify-between">
-                            <CollapsibleTrigger className="flex items-center gap-2 group cursor-pointer">
-                              <h2 className="text-base font-semibold tracking-tight">Charges</h2>
-                              <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualCharges.length}</span>
-                              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-                            </CollapsibleTrigger>
-                            <ChargeForm onSubmit={addCharge} />
-                          </div>
-                          <CollapsibleContent className="pt-4">
-                            <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} copyTargets={copyTargets} isPersonal onCopyToPersonal={handleCopyChargeToPersonal} onCopyToScenario={handleCopyChargeToScenario} />
-                          </CollapsibleContent>
-                        </Collapsible>
-                      </div>
-
-                      <div className="glass-card p-5 space-y-4">
-                        <Collapsible>
-                          <div className="flex items-center justify-between">
-                            <CollapsibleTrigger className="flex items-center gap-2 group cursor-pointer">
-                              <h2 className="text-base font-semibold tracking-tight">Revenus</h2>
-                              <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualIncomes.length}</span>
-                              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-                            </CollapsibleTrigger>
-                            <IncomeForm onSubmit={addIncome} />
-                          </div>
-                          <CollapsibleContent className="pt-4">
-                            <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} copyTargets={copyTargets} isPersonal onCopyToPersonal={handleCopyIncomeToPersonal} onCopyToScenario={handleCopyIncomeToScenario} />
-                          </CollapsibleContent>
-                        </Collapsible>
-                      </div>
-
-                      <div className="glass-card p-5 space-y-4">
-                        <Collapsible>
-                          <div className="flex items-center justify-between">
-                            <CollapsibleTrigger className="flex items-center gap-2 group cursor-pointer">
-                              <h2 className="text-base font-semibold tracking-tight">Patrimoine</h2>
-                              <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{patrimoine.length}</span>
-                              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-                            </CollapsibleTrigger>
-                            <PatrimoineForm onSubmit={addPatrimoine} />
-                          </div>
-                          <CollapsibleContent className="pt-4">
-                            <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} copyTargets={copyTargets} isPersonal onCopyToPersonal={handleCopyPatrimoineToPersonal} onCopyToScenario={handleCopyPatrimoineToScenario} />
-                          </CollapsibleContent>
-                        </Collapsible>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <TimelineChart charges={actualCharges} incomes={actualIncomes} />
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'categories' && (
-                  <div className="space-y-6">
-                    <p className="text-sm text-muted-foreground">Répartition de vos dépenses et revenus par catégorie.</p>
-                    <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
-                  </div>
-                )}
-
-                {activeTab === 'projections' && (
-                  <div className="space-y-6">
-                    <p className="text-sm text-muted-foreground">Simulez différentes situations financières.</p>
-                    <ScenarioManager
-                      scenarios={scenarios}
-                      actualCharges={actualCharges}
-                      actualIncomes={actualIncomes}
-                      actualPatrimoine={patrimoine}
-                      onCreateScenario={createScenario}
-                      onDeleteScenario={deleteScenario}
-                      onRenameScenario={renameScenario}
-                      onUpdateScenarioColor={updateScenarioColor}
-                      onDuplicateScenario={duplicateScenario}
-                      onAddCharge={addChargeToScenario}
-                      onUpdateCharge={updateChargeInScenario}
-                      onDeleteCharge={deleteChargeFromScenario}
-                      onAddIncome={addIncomeToScenario}
-                      onUpdateIncome={updateIncomeInScenario}
-                      onDeleteIncome={deleteIncomeFromScenario}
-                      onAddPatrimoine={addPatrimoineToScenario}
-                      onUpdatePatrimoine={updatePatrimoineInScenario}
-                      onDeletePatrimoine={deletePatrimoineFromScenario}
-                      onCopyChargeToPersonal={handleCopyChargeToPersonal}
-                      onCopyIncomeToPersonal={handleCopyIncomeToPersonal}
-                      onCopyPatrimoineToPersonal={handleCopyPatrimoineToPersonal}
-                    />
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </main>
+            </motion.div>
           </div>
         </div>
-        </div>
+      </header>
+
+      <div className="flex-1 overflow-y-auto">
+        <main className="flex-1 px-3 sm:px-6 py-4 sm:py-6 pb-32 md:pb-10 space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full">
+          <AnimatePresence mode="wait">
+            <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
+              {activeTab === 'actual' && (
+                <div className="space-y-8">
+                  <p className="text-sm text-muted-foreground">Vue d'ensemble de vos finances actuelles.</p>
+                  <SummaryCards charges={actualCharges} incomes={actualIncomes} />
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="glass-card p-5 space-y-4">
+                      <Collapsible>
+                        <div className="flex items-center justify-between">
+                          <CollapsibleTrigger className="flex items-center gap-2 group cursor-pointer">
+                            <h2 className="text-base font-semibold tracking-tight">Charges</h2>
+                            <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualCharges.length}</span>
+                            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                          </CollapsibleTrigger>
+                          <ChargeForm onSubmit={addCharge} />
+                        </div>
+                        <CollapsibleContent className="pt-4">
+                          <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} copyTargets={copyTargets} isPersonal onCopyToPersonal={handleCopyChargeToPersonal} onCopyToScenario={handleCopyChargeToScenario} />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </div>
+
+                    <div className="glass-card p-5 space-y-4">
+                      <Collapsible>
+                        <div className="flex items-center justify-between">
+                          <CollapsibleTrigger className="flex items-center gap-2 group cursor-pointer">
+                            <h2 className="text-base font-semibold tracking-tight">Revenus</h2>
+                            <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{actualIncomes.length}</span>
+                            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                          </CollapsibleTrigger>
+                          <IncomeForm onSubmit={addIncome} />
+                        </div>
+                        <CollapsibleContent className="pt-4">
+                          <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} copyTargets={copyTargets} isPersonal onCopyToPersonal={handleCopyIncomeToPersonal} onCopyToScenario={handleCopyIncomeToScenario} />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </div>
+
+                    <div className="glass-card p-5 space-y-4">
+                      <Collapsible>
+                        <div className="flex items-center justify-between">
+                          <CollapsibleTrigger className="flex items-center gap-2 group cursor-pointer">
+                            <h2 className="text-base font-semibold tracking-tight">Patrimoine</h2>
+                            <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{patrimoine.length}</span>
+                            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                          </CollapsibleTrigger>
+                          <PatrimoineForm onSubmit={addPatrimoine} />
+                        </div>
+                        <CollapsibleContent className="pt-4">
+                          <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} copyTargets={copyTargets} isPersonal onCopyToPersonal={handleCopyPatrimoineToPersonal} onCopyToScenario={handleCopyPatrimoineToScenario} />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <TimelineChart charges={actualCharges} incomes={actualIncomes} />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'categories' && (
+                <div className="space-y-6">
+                  <p className="text-sm text-muted-foreground">Répartition de vos dépenses et revenus par catégorie.</p>
+                  <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
+                </div>
+              )}
+
+              {activeTab === 'projections' && (
+                <div className="space-y-6">
+                  <p className="text-sm text-muted-foreground">Simulez différentes situations financières.</p>
+                  <ScenarioManager
+                    scenarios={scenarios}
+                    actualCharges={actualCharges}
+                    actualIncomes={actualIncomes}
+                    actualPatrimoine={patrimoine}
+                    onCreateScenario={createScenario}
+                    onDeleteScenario={deleteScenario}
+                    onRenameScenario={renameScenario}
+                    onUpdateScenarioColor={updateScenarioColor}
+                    onDuplicateScenario={duplicateScenario}
+                    onAddCharge={addChargeToScenario}
+                    onUpdateCharge={updateChargeInScenario}
+                    onDeleteCharge={deleteChargeFromScenario}
+                    onAddIncome={addIncomeToScenario}
+                    onUpdateIncome={updateIncomeInScenario}
+                    onDeleteIncome={deleteIncomeFromScenario}
+                    onAddPatrimoine={addPatrimoineToScenario}
+                    onUpdatePatrimoine={updatePatrimoineInScenario}
+                    onDeletePatrimoine={deletePatrimoineFromScenario}
+                    onCopyChargeToPersonal={handleCopyChargeToPersonal}
+                    onCopyIncomeToPersonal={handleCopyIncomeToPersonal}
+                    onCopyPatrimoineToPersonal={handleCopyPatrimoineToPersonal}
+                  />
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
-        <MobileNav activeTab={activeTab} onTabChange={setActiveTab} />
-    </SidebarProvider>
+      <MobileNav activeTab={activeTab} onTabChange={setActiveTab} />
+    </div>
   );
 };
 
