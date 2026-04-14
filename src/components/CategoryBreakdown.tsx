@@ -1,4 +1,4 @@
-import { Charge, Income, CATEGORY_LABELS, ChargeCategory, getCurrentMonthAllChargesTotal, getCurrentMonthAllIncomesTotal, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
+import { Charge, Income, CATEGORY_LABELS, ChargeCategory, getChargeAmountForMonth } from '@/types/finance';
 import { getCustomCategories } from '@/hooks/useCustomCategories';
 import { Badge } from '@/components/ui/badge';
 import { useMemo } from 'react';
@@ -82,35 +82,8 @@ export function CategoryBreakdown({ charges, incomes }: CategoryBreakdownProps) 
   const totalCharges = getCurrentMonthAllChargesTotal(charges);
   const totalIncomes = getCurrentMonthAllIncomesTotal(incomes);
 
-  // One-time subtotals for current month
-  const oneTimeChargesTotal = charges.filter(c => c.type === 'one-time').reduce((s, c) => s + getChargeAmountForMonth(c, currentYear, currentMonth), 0);
-  const oneTimeIncomesTotal = incomes.filter(i => !i.isRecurring).reduce((s, i) => s + getIncomeAmountForMonth(i, currentYear, currentMonth), 0);
-
   return (
     <div className="space-y-6">
-      {/* Summary row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="glass-card p-5 premium-shadow text-center">
-          <p className="text-[13px] font-medium text-muted-foreground mb-2">Total revenus</p>
-          <p className="text-2xl font-bold text-primary tracking-tight">{formatCurrency(totalIncomes)}</p>
-          {oneTimeIncomesTotal > 0 && (
-            <p className="text-xs text-emerald-500 mt-1">dont {formatCurrency(oneTimeIncomesTotal)} ponctuel</p>
-          )}
-        </div>
-        <div className="glass-card p-5 premium-shadow text-center">
-          <p className="text-[13px] font-medium text-muted-foreground mb-2">Total charges</p>
-          <p className="text-2xl font-bold text-destructive tracking-tight">{formatCurrency(totalCharges)}</p>
-          {oneTimeChargesTotal > 0 && (
-            <p className="text-xs text-orange-500 mt-1">dont {formatCurrency(oneTimeChargesTotal)} ponctuel</p>
-          )}
-        </div>
-        <div className="glass-card p-5 premium-shadow text-center">
-          <p className="text-[13px] font-medium text-muted-foreground mb-2">Solde</p>
-          <p className={`text-2xl font-bold tracking-tight ${totalIncomes - totalCharges >= 0 ? 'text-primary' : 'text-destructive'}`}>
-            {formatCurrency(totalIncomes - totalCharges)}
-          </p>
-        </div>
-      </div>
 
       {/* Charges donut */}
       <div className="glass-card p-6 premium-shadow">
