@@ -269,6 +269,9 @@ const Index = () => {
                       onAddPatrimoine={addPatrimoineToScenario}
                       onUpdatePatrimoine={updatePatrimoineInScenario}
                       onDeletePatrimoine={deletePatrimoineFromScenario}
+                      onCopyChargeToPersonal={handleCopyChargeToPersonal}
+                      onCopyIncomeToPersonal={handleCopyIncomeToPersonal}
+                      onCopyPatrimoineToPersonal={handleCopyPatrimoineToPersonal}
                     />
                   </div>
                 )}
