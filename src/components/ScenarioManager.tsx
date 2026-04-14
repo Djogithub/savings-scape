@@ -458,7 +458,7 @@ export function ScenarioManager({
                     <ScenarioPieChart charges={charges} incomes={incomes} bare />
 
                     {/* Table data integrated */}
-                    <div className="mt-3 pt-3 border-t border-border/40 space-y-1.5 text-xs">
+                    <div className="mt-3 pt-3 border-t border-border/40 space-y-1.5 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Rev. récurrents</span>
                         <span className="font-medium text-primary tabular-nums">{fmt(recIncomes)}</span>
