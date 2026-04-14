@@ -194,7 +194,8 @@ const Index = () => {
             <motion.div key={activeTab} initial="hidden" animate="visible" exit="exit" variants={tabContentVariants}>
               {activeTab === 'actual' && (
                 <div className="space-y-8">
-                  <p className="text-sm text-muted-foreground">Vue d'ensemble de vos finances actuelles.</p>
+                  <h1 className="text-2xl font-bold tracking-tight">Situation personnelle</h1>
+                  <p className="text-sm text-muted-foreground -mt-6">Vue d'ensemble de vos finances actuelles.</p>
                   <SummaryCards charges={actualCharges} incomes={actualIncomes} />
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
