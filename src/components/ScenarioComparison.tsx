@@ -17,6 +17,7 @@ interface ScenarioComparisonProps {
   actualIncomes: Income[];
   selectedScenarios: string[];
   effectiveOrder: string[];
+  hideTable?: boolean;
 }
 
 function formatCurrency(n: number) {
@@ -78,7 +79,7 @@ const cardVariants = {
 type ProjectionFilter = 'solde-disponible' | 'patrimoine';
 type CategoryChartType = 'histogram' | 'radar';
 
-export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, selectedScenarios, effectiveOrder }: ScenarioComparisonProps) {
+export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, selectedScenarios, effectiveOrder, hideTable }: ScenarioComparisonProps) {
   const [projectionFilter, setProjectionFilter] = useState<ProjectionFilter>('solde-disponible');
   const [categoryChartType, setCategoryChartType] = useState<CategoryChartType>('histogram');
 
@@ -247,6 +248,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
     <div className="space-y-6">
 
       {/* Summary table */}
+      {!hideTable && (
       <motion.div custom={3} initial="hidden" animate="visible" variants={cardVariants}>
         <Card className="glass-card overflow-hidden">
           <CardHeader className="pb-2"><CardTitle className="text-base">Tableau comparatif</CardTitle></CardHeader>
@@ -350,6 +352,7 @@ export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, se
           </CardContent>
         </Card>
       </motion.div>
+      )}
 
       {/* Bar chart */}
       <motion.div custom={4} initial="hidden" animate="visible" variants={cardVariants}>
