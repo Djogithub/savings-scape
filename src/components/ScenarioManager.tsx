@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Scenario, Charge, Income, PatrimoineItem, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal } from '@/types/finance';
+import { Scenario, Charge, Income, PatrimoineItem, getCurrentMonthChargesTotal, getCurrentMonthIncomesTotal, getChargeAmountForMonth, getIncomeAmountForMonth } from '@/types/finance';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
