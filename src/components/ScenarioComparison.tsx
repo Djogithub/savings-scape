@@ -79,7 +79,7 @@ const cardVariants = {
 type ProjectionFilter = 'solde-disponible' | 'patrimoine';
 type CategoryChartType = 'histogram' | 'radar';
 
-export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, selectedScenarios, effectiveOrder }: ScenarioComparisonProps) {
+export function ScenarioComparison({ scenarios, actualCharges, actualIncomes, selectedScenarios, effectiveOrder, hideTable }: ScenarioComparisonProps) {
   const [projectionFilter, setProjectionFilter] = useState<ProjectionFilter>('solde-disponible');
   const [categoryChartType, setCategoryChartType] = useState<CategoryChartType>('histogram');
 
