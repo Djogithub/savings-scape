@@ -64,6 +64,9 @@ interface ScenarioManagerProps {
   onAddPatrimoine: (scenarioId: string, item: Omit<PatrimoineItem, 'id'>) => void;
   onUpdatePatrimoine: (scenarioId: string, itemId: string, updates: Partial<PatrimoineItem>) => void;
   onDeletePatrimoine: (scenarioId: string, itemId: string) => void;
+  onCopyChargeToPersonal?: (charge: Charge) => void;
+  onCopyIncomeToPersonal?: (income: Income) => void;
+  onCopyPatrimoineToPersonal?: (item: PatrimoineItem) => void;
 }
 
 type CreateSource = 'situation' | 'scenario' | 'empty';
@@ -74,6 +77,7 @@ export function ScenarioManager({
   onAddCharge, onUpdateCharge, onDeleteCharge,
   onAddIncome, onUpdateIncome, onDeleteIncome,
   onAddPatrimoine, onUpdatePatrimoine, onDeletePatrimoine,
+  onCopyChargeToPersonal, onCopyIncomeToPersonal, onCopyPatrimoineToPersonal,
 }: ScenarioManagerProps) {
   const [activeScenarioId, setActiveScenarioId] = useState<string | null>(scenarios[0]?.id ?? null);
   const [newName, setNewName] = useState('');
