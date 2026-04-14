@@ -628,8 +628,7 @@ export function ScenarioManager({
                     />
                   </CollapsibleContent>
                 </Collapsible>
-              </motion.div>
-            </AnimatePresence>
+              </div>
           )}
         </div>
       )}
