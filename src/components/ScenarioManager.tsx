@@ -83,6 +83,7 @@ export function ScenarioManager({
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [view, setView] = useState<'detail' | 'compare'>('detail');
+  const [compareView, setCompareView] = useState<'cards' | 'table'>('cards');
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // Compare view state (lifted from ScenarioComparison)
