@@ -582,6 +582,11 @@ export function ScenarioManager({
                       onAdd={(c) => onAddCharge(activeScenario.id, c)}
                       isProjection
                       storageKey={`charge-order-${activeScenario.id}`}
+                      copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
+                      isPersonal={false}
+                      currentScenarioId={activeScenario.id}
+                      onCopyToPersonal={onCopyChargeToPersonal}
+                      onCopyToScenario={(sid, charge) => onAddCharge(sid, charge)}
                     />
                   </CollapsibleContent>
                 </Collapsible>
@@ -606,6 +611,11 @@ export function ScenarioManager({
                       onAdd={(i) => onAddIncome(activeScenario.id, i)}
                       isProjection
                       storageKey={`income-order-${activeScenario.id}`}
+                      copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
+                      isPersonal={false}
+                      currentScenarioId={activeScenario.id}
+                      onCopyToPersonal={onCopyIncomeToPersonal}
+                      onCopyToScenario={(sid, income) => onAddIncome(sid, income)}
                     />
                   </CollapsibleContent>
                 </Collapsible>
@@ -629,6 +639,11 @@ export function ScenarioManager({
                       onUpdate={(pid, u) => onUpdatePatrimoine(activeScenario.id, pid, u)}
                       onAdd={(p) => onAddPatrimoine(activeScenario.id, p)}
                       storageKey={`patrimoine-order-${activeScenario.id}`}
+                      copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
+                      isPersonal={false}
+                      currentScenarioId={activeScenario.id}
+                      onCopyToPersonal={onCopyPatrimoineToPersonal}
+                      onCopyToScenario={(sid, item) => onAddPatrimoine(sid, item)}
                     />
                   </CollapsibleContent>
                 </Collapsible>
