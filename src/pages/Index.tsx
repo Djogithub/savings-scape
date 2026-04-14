@@ -196,7 +196,7 @@ const Index = () => {
                             <ChargeForm onSubmit={addCharge} />
                           </div>
                           <CollapsibleContent className="pt-4">
-                            <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} />
+                            <ChargeList charges={actualCharges} onDelete={deleteCharge} onUpdate={updateCharge} onAdd={addCharge} copyTargets={copyTargets} isPersonal onCopyToPersonal={handleCopyChargeToPersonal} onCopyToScenario={handleCopyChargeToScenario} />
                           </CollapsibleContent>
                         </Collapsible>
                       </div>
@@ -212,7 +212,7 @@ const Index = () => {
                             <IncomeForm onSubmit={addIncome} />
                           </div>
                           <CollapsibleContent className="pt-4">
-                            <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} />
+                            <IncomeList incomes={actualIncomes} onDelete={deleteIncome} onUpdate={updateIncome} onAdd={addIncome} copyTargets={copyTargets} isPersonal onCopyToPersonal={handleCopyIncomeToPersonal} onCopyToScenario={handleCopyIncomeToScenario} />
                           </CollapsibleContent>
                         </Collapsible>
                       </div>
@@ -228,7 +228,7 @@ const Index = () => {
                             <PatrimoineForm onSubmit={addPatrimoine} />
                           </div>
                           <CollapsibleContent className="pt-4">
-                            <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} />
+                            <PatrimoineList items={patrimoine} onDelete={deletePatrimoine} onUpdate={updatePatrimoine} onAdd={addPatrimoine} copyTargets={copyTargets} isPersonal onCopyToPersonal={handleCopyPatrimoineToPersonal} onCopyToScenario={handleCopyPatrimoineToScenario} />
                           </CollapsibleContent>
                         </Collapsible>
                       </div>
