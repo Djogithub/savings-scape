@@ -254,13 +254,6 @@ const Index = () => {
                 </div>
               )}
 
-              {activeTab === 'categories' && (
-                <div className="space-y-6">
-                  <h1 className="text-2xl font-bold tracking-tight">Catégories</h1>
-                  <p className="text-sm text-muted-foreground -mt-4">Répartition de vos dépenses et revenus par catégorie.</p>
-                  <CategoryBreakdown charges={actualCharges} incomes={actualIncomes} />
-                </div>
-              )}
 
               {activeTab === 'projections' && (
                 <div className="space-y-6">
