@@ -23,7 +23,9 @@ import { useTheme } from '@/hooks/useTheme';
 import { useSkin } from '@/hooks/useSkin';
 import { SkinSelector } from '@/components/SkinSelector';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import { useMemo, useCallback } from 'react';
+import { CopyTarget } from '@/components/CopyToDropdown';
+import { Charge, Income, PatrimoineItem } from '@/types/finance';
 const tabContentVariants = {
   hidden: { opacity: 0, y: 16, filter: 'blur(4px)' },
   visible: {
@@ -58,6 +60,41 @@ const Index = () => {
   const { theme, toggleTheme } = useTheme();
   const { skin, setSkin } = useSkin();
   const [activeTab, setActiveTab] = useState('actual');
+
+  const copyTargets: CopyTarget[] = useMemo(() =>
+    scenarios.map(s => ({ id: s.id, name: s.name, color: s.color })),
+    [scenarios]
+  );
+
+  const handleCopyChargeToPersonal = useCallback((charge: Charge) => {
+    const { id, isProjection, originId, ...rest } = charge;
+    addCharge(rest);
+  }, [addCharge]);
+
+  const handleCopyIncomeToPersonal = useCallback((income: Income) => {
+    const { id, isProjection, originId, ...rest } = income;
+    addIncome(rest);
+  }, [addIncome]);
+
+  const handleCopyPatrimoineToPersonal = useCallback((item: PatrimoineItem) => {
+    const { id, ...rest } = item;
+    addPatrimoine(rest);
+  }, [addPatrimoine]);
+
+  const handleCopyChargeToScenario = useCallback((scenarioId: string, charge: Charge) => {
+    const { id, ...rest } = charge;
+    addChargeToScenario(scenarioId, rest);
+  }, [addChargeToScenario]);
+
+  const handleCopyIncomeToScenario = useCallback((scenarioId: string, income: Income) => {
+    const { id, ...rest } = income;
+    addIncomeToScenario(scenarioId, rest);
+  }, [addIncomeToScenario]);
+
+  const handleCopyPatrimoineToScenario = useCallback((scenarioId: string, item: PatrimoineItem) => {
+    const { id, ...rest } = item;
+    addPatrimoineToScenario(scenarioId, rest);
+  }, [addPatrimoineToScenario]);
 
   useEffect(() => {
     if (scenarios.length > 0) {
