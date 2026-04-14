@@ -15,7 +15,7 @@ import { PatrimoineForm } from '@/components/PatrimoineForm';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 import { Button } from '@/components/ui/button';
-import { Download, Upload, Sun, Moon, Wallet, ChevronDown, ListChecks, PieChart, GitCompare } from 'lucide-react';
+import { Download, Upload, Sun, Moon, Wallet, ChevronDown, ListChecks, GitCompare } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { useSkin } from '@/hooks/useSkin';
