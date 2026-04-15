@@ -563,91 +563,98 @@ export function ScenarioManager({
                   </div>
                 </div>
 
-                {/* Charges collapsible */}
-                <Collapsible defaultOpen>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full group">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-base font-semibold">Charges</h2>
-                      <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{activeScenario.charges.length}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <ChargeForm onSubmit={(c) => onAddCharge(activeScenario.id, c)} isProjection />
-                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-3">
-                    <ChargeList
-                      charges={activeScenario.charges}
-                      onDelete={(cid) => onDeleteCharge(activeScenario.id, cid)}
-                      onUpdate={(cid, u) => onUpdateCharge(activeScenario.id, cid, u)}
-                      onAdd={(c) => onAddCharge(activeScenario.id, c)}
-                      isProjection
-                      storageKey={`charge-order-${activeScenario.id}`}
-                      copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
-                      isPersonal={false}
-                      currentScenarioId={activeScenario.id}
-                      onCopyToPersonal={onCopyChargeToPersonal}
-                      onCopyToScenario={(sid, charge) => onAddCharge(sid, charge)}
-                    />
-                  </CollapsibleContent>
-                </Collapsible>
+                <div className="rounded-xl border bg-card p-3 sm:p-4 space-y-4">
+                  {/* Charges collapsible */}
+                  <Collapsible defaultOpen>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full group">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-base font-semibold">Charges</h2>
+                        <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{activeScenario.charges.length}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ChargeForm onSubmit={(c) => onAddCharge(activeScenario.id, c)} isProjection />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-3">
+                      <ChargeList
+                        charges={activeScenario.charges}
+                        onDelete={(cid) => onDeleteCharge(activeScenario.id, cid)}
+                        onUpdate={(cid, u) => onUpdateCharge(activeScenario.id, cid, u)}
+                        onAdd={(c) => onAddCharge(activeScenario.id, c)}
+                        isProjection
+                        storageKey={`charge-order-${activeScenario.id}`}
+                        copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
+                        isPersonal={false}
+                        currentScenarioId={activeScenario.id}
+                        onCopyToPersonal={onCopyChargeToPersonal}
+                        onCopyToScenario={(sid, charge) => onAddCharge(sid, charge)}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
 
-                {/* Revenus collapsible */}
-                <Collapsible defaultOpen>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full group">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-base font-semibold">Revenus</h2>
-                      <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{activeScenario.incomes.length}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <IncomeForm onSubmit={(i) => onAddIncome(activeScenario.id, i)} isProjection />
-                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-3">
-                    <IncomeList
-                      incomes={activeScenario.incomes}
-                      onDelete={(iid) => onDeleteIncome(activeScenario.id, iid)}
-                      onUpdate={(iid, u) => onUpdateIncome(activeScenario.id, iid, u)}
-                      onAdd={(i) => onAddIncome(activeScenario.id, i)}
-                      isProjection
-                      storageKey={`income-order-${activeScenario.id}`}
-                      copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
-                      isPersonal={false}
-                      currentScenarioId={activeScenario.id}
-                      onCopyToPersonal={onCopyIncomeToPersonal}
-                      onCopyToScenario={(sid, income) => onAddIncome(sid, income)}
-                    />
-                  </CollapsibleContent>
-                </Collapsible>
+                  <div className="h-px bg-border/40" />
 
-                {/* Patrimoine collapsible */}
-                <Collapsible defaultOpen>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full group">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-base font-semibold">Patrimoine</h2>
-                      <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{activeScenario.patrimoine.length}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <PatrimoineForm onSubmit={(p) => onAddPatrimoine(activeScenario.id, p)} />
-                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-3">
-                    <PatrimoineList
-                      items={activeScenario.patrimoine}
-                      onDelete={(pid) => onDeletePatrimoine(activeScenario.id, pid)}
-                      onUpdate={(pid, u) => onUpdatePatrimoine(activeScenario.id, pid, u)}
-                      onAdd={(p) => onAddPatrimoine(activeScenario.id, p)}
-                      storageKey={`patrimoine-order-${activeScenario.id}`}
-                      copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
-                      isPersonal={false}
-                      currentScenarioId={activeScenario.id}
-                      onCopyToPersonal={onCopyPatrimoineToPersonal}
-                      onCopyToScenario={(sid, item) => onAddPatrimoine(sid, item)}
-                    />
-                  </CollapsibleContent>
-                </Collapsible>
+                  {/* Revenus collapsible */}
+                  <Collapsible defaultOpen>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full group">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-base font-semibold">Revenus</h2>
+                        <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{activeScenario.incomes.length}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <IncomeForm onSubmit={(i) => onAddIncome(activeScenario.id, i)} isProjection />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-3">
+                      <IncomeList
+                        incomes={activeScenario.incomes}
+                        onDelete={(iid) => onDeleteIncome(activeScenario.id, iid)}
+                        onUpdate={(iid, u) => onUpdateIncome(activeScenario.id, iid, u)}
+                        onAdd={(i) => onAddIncome(activeScenario.id, i)}
+                        isProjection
+                        storageKey={`income-order-${activeScenario.id}`}
+                        copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
+                        isPersonal={false}
+                        currentScenarioId={activeScenario.id}
+                        onCopyToPersonal={onCopyIncomeToPersonal}
+                        onCopyToScenario={(sid, income) => onAddIncome(sid, income)}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  <div className="h-px bg-border/40" />
+
+                  {/* Patrimoine collapsible */}
+                  <Collapsible defaultOpen>
+                    <CollapsibleTrigger className="flex items-center justify-between w-full group">
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-base font-semibold">Patrimoine</h2>
+                        <span className="text-xs text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">{activeScenario.patrimoine.length}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <PatrimoineForm onSubmit={(p) => onAddPatrimoine(activeScenario.id, p)} />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-3">
+                      <PatrimoineList
+                        items={activeScenario.patrimoine}
+                        onDelete={(pid) => onDeletePatrimoine(activeScenario.id, pid)}
+                        onUpdate={(pid, u) => onUpdatePatrimoine(activeScenario.id, pid, u)}
+                        onAdd={(p) => onAddPatrimoine(activeScenario.id, p)}
+                        storageKey={`patrimoine-order-${activeScenario.id}`}
+                        copyTargets={scenarios.map(s => ({ id: s.id, name: s.name, color: s.color }))}
+                        isPersonal={false}
+                        currentScenarioId={activeScenario.id}
+                        onCopyToPersonal={onCopyPatrimoineToPersonal}
+                        onCopyToScenario={(sid, item) => onAddPatrimoine(sid, item)}
+                      />
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+
                 <CategoryBreakdown charges={activeScenario.charges} incomes={activeScenario.incomes} />
               </div>
           )}
